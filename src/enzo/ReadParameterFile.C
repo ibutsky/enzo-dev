@@ -553,6 +553,8 @@ int ReadParameterFile(FILE *fptr, TopGridData &MetaData, float *Initialdt)
     ret += sscanf(line, "ParticleSubgridDepositMode  = %"ISYM, &ParticleSubgridDepositMode);
     ret += sscanf(line, "WriteAcceleration      = %"ISYM, &WriteAcceleration);
 
+    ret += sscanf(line, "ColdGasSubgridModel    = %"ISYM, &ColdGasSubgridModel);
+
     ret += sscanf(line, "DualEnergyFormalism     = %"ISYM, &DualEnergyFormalism);
     ret += sscanf(line, "DualEnergyFormalismEta1 = %"FSYM,
 		  &DualEnergyFormalismEta1);

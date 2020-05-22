@@ -511,7 +511,9 @@ int WriteParameterFile(FILE *fptr, TopGridData &MetaData, char *name = NULL)
   fprintf(fptr, "GalaxySimulationPreWindTotalEnergy = %"GSYM"\n",GalaxySimulationPreWindTotalEnergy);
   fprintf(fptr, "GalaxySimulationPreWindVelocity    = ");
   WriteListOfFloats(fptr, MetaData.TopGridRank, GalaxySimulationPreWindVelocity);
- 
+
+  fprintf(fptr, "ColdGasSubgridModel         =%"ISYM"\n",  ColdGasSubgridModel);
+  
   fprintf(fptr, "DualEnergyFormalism         = %"ISYM"\n", DualEnergyFormalism);
   fprintf(fptr, "DualEnergyFormalismEta1     = %e\n", DualEnergyFormalismEta1);
   fprintf(fptr, "DualEnergyFormalismEta2     = %e\n", DualEnergyFormalismEta2);

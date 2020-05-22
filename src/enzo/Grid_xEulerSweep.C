@@ -41,10 +41,13 @@ int grid::xEulerSweep(int k, int NumberOfSubgrids, fluxes *SubgridFluxes[],
 
   /* Find fields: density, total energy, velocity1-3. */
 
-  int DensNum, GENum, Vel1Num, Vel2Num, Vel3Num, TENum;
-  
+  int DensNum, GENum, Vel1Num, Vel2Num, Vel3Num, TENum, CENum;
+    
   this->IdentifyPhysicalQuantities(DensNum, GENum, Vel1Num, Vel2Num, 
 				   Vel3Num, TENum);
+  if (ColdGasSubgridModel)
+        if ((CENum = FindField(ColdGasEnergy, FieldType, NumberOfBaryonFields)) < 0)
+          ENZO_FAIL("Cannot Find Cold Gas Energy Field");
 
   int nxz, nyz, nzz, ixyz;
 
@@ -57,7 +60,7 @@ int grid::xEulerSweep(int k, int NumberOfSubgrids, fluxes *SubgridFluxes[],
   // Copy from field to slice
 
   float *dslice, *eslice, *uslice, *vslice, *wslice, *grslice, *geslice, 
-    *colslice, *pslice;
+    *colslice, *pslice, *ceslice;
 
   int size = GridDimension[0] * GridDimension[1];
   dslice = new float[size];
@@ -71,6 +74,9 @@ int grid::xEulerSweep(int k, int NumberOfSubgrids, fluxes *SubgridFluxes[],
   }
   if (DualEnergyFormalism) {
     geslice = new float[size];  
+  }
+  if (ColdGasSubgridModel){
+    ceslice = new float[size];
   }
   if (NumberOfColours > 0) {
     colslice = new float[NumberOfColours * size];  
@@ -122,7 +128,11 @@ int grid::xEulerSweep(int k, int NumberOfSubgrids, fluxes *SubgridFluxes[],
 	index3 = (k*GridDimension[1] + j) * GridDimension[0] + i;
 	geslice[index2+i] = BaryonField[GENum][index3];
       }
-
+    if (ColdGasSubgridModel)
+      for (i = 0; i < GridDimension[0]; i++) {
+        index3 = (k*GridDimension[1] + j) * GridDimension[0] + i;
+        ceslice[index2+i] = BaryonField[CENum][index3];
+      }
     for (n = 0; n < NumberOfColours; n++) {
       index2 = (n*GridDimension[1] + j) * GridDimension[0];
       for (i = 0; i < GridDimension[0]; i++) {
@@ -135,8 +145,8 @@ int grid::xEulerSweep(int k, int NumberOfSubgrids, fluxes *SubgridFluxes[],
   /* Allocate memory for fluxes */
 
   float *dls, *drs, *flatten, *pbar, *pls, *prs, *ubar, *uls, *urs, *vls, 
-    *vrs, *gels, *gers, *wls, *wrs, *diffcoef, *df, *ef, *uf, *vf, *wf, *gef,
-    *ges, *colf, *colls, *colrs;
+    *vrs, *gels, *gers, *cels, *cers, *wls, *wrs, *diffcoef, *df, *ef, *uf, *vf, *wf, *gef,
+    *ges, *cef, *ces, *colf, *colls, *colrs;
 
   dls = new float[size];	
   drs = new float[size];	
@@ -150,17 +160,21 @@ int grid::xEulerSweep(int k, int NumberOfSubgrids, fluxes *SubgridFluxes[],
   vls = new float[size];	
   vrs = new float[size];	
   gels = new float[size];	
-  gers = new float[size];	
+  gers = new float[size];
+  cels = new float[size];
+  cers = new float[size];
   wls = new float[size];	
-  wrs = new float[size];	
+  wrs = new float[size];
   diffcoef = new float[size];	
   df = new float[size];		
   ef = new float[size];		
   uf = new float[size];		
   vf = new float[size];		
   wf = new float[size];		
-  gef = new float[size];	
-  ges = new float[size];	
+  gef = new float[size];
+  ges = new float[size];
+  cef = new float[size];
+  cef = new float[size];
   colf = new float[NumberOfColours*size];  
   colls = new float[NumberOfColours*size];  
   colrs = new float[NumberOfColours*size];  
@@ -216,7 +230,8 @@ int grid::xEulerSweep(int k, int NumberOfSubgrids, fluxes *SubgridFluxes[],
 			   &ConservativeReconstruction, &PositiveReconstruction,
 			   &dtFixed, &Gamma, &PressureFree, 
 			   dls, drs, pls, prs, gels, gers, uls, urs, vls, vrs,
-			   wls, wrs, &NumberOfColours, colslice, colls, colrs);
+			   wls, wrs, &NumberOfColours, colslice, colls, colrs,
+			   &ColdGasSubgridModel, ceslice, cels, cers);
 
   /* Compute (Lagrangian part of the) Riemann problem at each zone boundary */
 
@@ -253,7 +268,9 @@ int grid::xEulerSweep(int k, int NumberOfSubgrids, fluxes *SubgridFluxes[],
 			   dls, drs, pls, prs, uls, urs,
 			   vls, vrs, wls, wrs, gels, gers,
 			   df, uf, vf, wf, ef, gef, ges,
-			   &NumberOfColours, colslice, colls, colrs, colf);
+			   &NumberOfColours, colslice, colls, colrs, colf,
+                           &ColdGasSubgridModel, ceslice, cels, cers, cef, ces);
+
     break;
 
   case HLLC:
@@ -279,6 +296,8 @@ int grid::xEulerSweep(int k, int NumberOfSubgrids, fluxes *SubgridFluxes[],
       wf[index] = 0;
       gef[index] = 0;
       ges[index] = 0;
+      cef[index] = 0;
+      cef[index] = 0;
     }
     break;
 
@@ -358,6 +377,11 @@ int grid::xEulerSweep(int k, int NumberOfSubgrids, fluxes *SubgridFluxes[],
 	  SubgridFluxes[n]->RightFluxes[GENum][dim][offset] = gef[rindex];
 	} // ENDIF DualEnergyFormalism
 
+        if (ColdGasSubgridModel){
+          SubgridFluxes[n]->LeftFluxes [CENum][dim][offset] = cef[lindex];
+          SubgridFluxes[n]->RightFluxes[CENum][dim][offset] = cef[rindex];
+        } // ENDIF ColdGasSubgridModel
+
 	for (ncolour = 0; ncolour < NumberOfColours; ncolour++) {
 	  clindex = (j + ncolour * GridDimension[1]) * GridDimension[dim] +
 	    lface;
@@ -406,7 +430,13 @@ int grid::xEulerSweep(int k, int NumberOfSubgrids, fluxes *SubgridFluxes[],
 	index3 = (k*GridDimension[1] + j)*GridDimension[0] + i;
 	BaryonField[GENum][index3] = geslice[index2+i];
       }
-
+    
+    if (ColdGasSubgridModel)
+      for (i = 0; i < GridDimension[0]; i++) {
+        index3 = (k*GridDimension[1] + j)*GridDimension[0] + i;
+        BaryonField[CENum][index3] = ceslice[index2+i];
+      }
+    
     for (n = 0; n < NumberOfColours; n++) {
       index2 = (n*GridDimension[1] + j) * GridDimension[0];
       for (i = 0; i < GridDimension[0]; i++) {
@@ -428,6 +458,8 @@ int grid::xEulerSweep(int k, int NumberOfSubgrids, fluxes *SubgridFluxes[],
     delete [] grslice;
   if (DualEnergyFormalism)
     delete [] geslice;
+  if (ColdGasSubgridModel)
+    delete [] ceslice;
   if (NumberOfColours > 0)
     delete [] colslice;
 
@@ -444,6 +476,8 @@ int grid::xEulerSweep(int k, int NumberOfSubgrids, fluxes *SubgridFluxes[],
   delete [] vrs;
   delete [] gels;
   delete [] gers;
+  delete [] cels;
+  delete [] cers;
   delete [] wls;
   delete [] wrs;
   delete [] diffcoef;
@@ -454,6 +488,8 @@ int grid::xEulerSweep(int k, int NumberOfSubgrids, fluxes *SubgridFluxes[],
   delete [] wf;
   delete [] gef;
   delete [] ges;
+  delete [] cef;
+  delete [] ces;
   delete [] colf;
   delete [] colls;
   delete [] colrs;

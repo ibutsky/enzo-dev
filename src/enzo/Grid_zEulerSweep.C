@@ -40,10 +40,13 @@ int grid::zEulerSweep(int j, int NumberOfSubgrids, fluxes *SubgridFluxes[],
 
   /* Find fields: density, total energy, velocity1-3. */
   
-  int DensNum, GENum, Vel1Num, Vel2Num, Vel3Num, TENum;
+  int DensNum, GENum, Vel1Num, Vel2Num, Vel3Num, TENum, CENum;
 
   this->IdentifyPhysicalQuantities(DensNum, GENum, Vel1Num, Vel2Num, 
 				   Vel3Num, TENum);
+  if (ColdGasSubgridModel)
+        if ((CENum = FindField(ColdGasEnergy, FieldType, NumberOfBaryonFields)) < 0)
+          ENZO_FAIL("Cannot Find Cold Gas Energy Field");
 
   int nxz, nyz, nzz, ixyz;
 
@@ -56,7 +59,7 @@ int grid::zEulerSweep(int j, int NumberOfSubgrids, fluxes *SubgridFluxes[],
   // Copy from field to slice
 
   float *dslice, *eslice, *uslice, *vslice, *wslice, *grslice, *geslice, 
-    *colslice, *pslice;
+    *colslice, *pslice, *ceslice;
 
   int size = GridDimension[2] * GridDimension[0];
   dslice = new float[size];  
@@ -70,6 +73,9 @@ int grid::zEulerSweep(int j, int NumberOfSubgrids, fluxes *SubgridFluxes[],
   }
   if (DualEnergyFormalism) {
     geslice = new float[size];  
+  }
+  if (ColdGasSubgridModel) {
+    ceslice = new float[size];
   }
   if (NumberOfColours > 0) {
     colslice = new float[NumberOfColours * size];  
@@ -120,6 +126,12 @@ int grid::zEulerSweep(int j, int NumberOfSubgrids, fluxes *SubgridFluxes[],
 	geslice[index2+k] = BaryonField[GENum][index3];
       }
 
+    if (ColdGasSubgridModel)
+      for (k = 0; k < GridDimension[2]; k++) {
+	index3 = (k*GridDimension[1] + j) * GridDimension[0] + i;
+        ceslice[index2+k] = BaryonField[CENum][index3];
+      }
+
     for (n = 0; n < NumberOfColours; n++) {
       index2 = (n*GridDimension[0] + i) * GridDimension[2];
       for (k = 0; k < GridDimension[2]; k++) {
@@ -132,8 +144,8 @@ int grid::zEulerSweep(int j, int NumberOfSubgrids, fluxes *SubgridFluxes[],
   /* Allocate memory for temporaries used in solver */
 
   float *dls, *drs, *flatten, *pbar, *pls, *prs, *ubar, *uls, *urs, *vls, 
-    *vrs, *gels, *gers, *wls, *wrs, *diffcoef, *df, *ef, *uf, *vf, *wf, *gef,
-    *ges, *colf, *colls, *colrs;
+    *vrs, *gels, *gers, *cels, *cers, *wls, *wrs, *diffcoef, *df, *ef, *uf, *vf, *wf, *gef,
+    *ges, *cef, *ces, *colf, *colls, *colrs;
 
   dls = new float[size];	
   drs = new float[size];	
@@ -147,7 +159,9 @@ int grid::zEulerSweep(int j, int NumberOfSubgrids, fluxes *SubgridFluxes[],
   vls = new float[size];	
   vrs = new float[size];	
   gels = new float[size];	
-  gers = new float[size];	
+  gers = new float[size];
+  cels = new float[size];
+  cers = new float[size];
   wls = new float[size];	
   wrs = new float[size];	
   diffcoef = new float[size];	
@@ -158,6 +172,8 @@ int grid::zEulerSweep(int j, int NumberOfSubgrids, fluxes *SubgridFluxes[],
   wf = new float[size];		
   gef = new float[size];	
   ges = new float[size];
+  cef = new float[size];
+  ces = new float[size];
   colf = new float[NumberOfColours*size];  
   colls = new float[NumberOfColours*size];  
   colrs = new float[NumberOfColours*size];  
@@ -213,7 +229,8 @@ int grid::zEulerSweep(int j, int NumberOfSubgrids, fluxes *SubgridFluxes[],
 			   &ConservativeReconstruction, &PositiveReconstruction,
 			   &dtFixed, &Gamma, &PressureFree, 
 			   dls, drs, pls, prs, gels, gers, uls, urs, vls, vrs,
-			   wls, wrs, &NumberOfColours, colslice, colls, colrs);
+			   wls, wrs, &NumberOfColours, colslice, colls, colrs,
+                           &ColdGasSubgridModel, ceslice, cels, cers);
 
   /* Compute (Lagrangian part of the) Riemann problem at each zone boundary */
 
@@ -250,7 +267,8 @@ int grid::zEulerSweep(int j, int NumberOfSubgrids, fluxes *SubgridFluxes[],
 			   dls, drs, pls, prs, uls, urs,
 			   vls, vrs, wls, wrs, gels, gers,
 			   df, uf, vf, wf, ef, gef, ges,
-			   &NumberOfColours, colslice, colls, colrs, colf);
+			   &NumberOfColours, colslice, colls, colrs, colf,
+                           &ColdGasSubgridModel, ceslice, cels, cers, cef, ces);			   
     break;
 
   case HLLC:
@@ -276,6 +294,8 @@ int grid::zEulerSweep(int j, int NumberOfSubgrids, fluxes *SubgridFluxes[],
       wf[index] = 0;
       gef[index] = 0;
       ges[index] = 0;
+      cef[index] = 0;
+      ces[index] = 0;
     }
     break;
 
@@ -355,6 +375,11 @@ int grid::zEulerSweep(int j, int NumberOfSubgrids, fluxes *SubgridFluxes[],
 	  SubgridFluxes[n]->LeftFluxes [GENum][dim][offset] = gef[lindex];
 	  SubgridFluxes[n]->RightFluxes[GENum][dim][offset] = gef[rindex];
 	} // ENDIF DualEnergyFormalism
+	
+	if (ColdGasSubgridModel) {
+          SubgridFluxes[n]->LeftFluxes [CENum][dim][offset] = cef[lindex];
+          SubgridFluxes[n]->RightFluxes[CENum][dim][offset] = cef[rindex];
+        } // ENDIF ColdGasSubgridModel
 
 	for (ncolour = 0; ncolour < NumberOfColours; ncolour++) {
 	  clindex = (i + ncolour * GridDimension[0]) * GridDimension[dim] +
@@ -403,6 +428,12 @@ int grid::zEulerSweep(int j, int NumberOfSubgrids, fluxes *SubgridFluxes[],
 	BaryonField[GENum][index3] = geslice[index2+k];
       }
 
+    if (ColdGasSubgridModel)
+      for (k = 0; k < GridDimension[2]; k++) {
+        index3 = (k*GridDimension[1] + j)*GridDimension[0] + i;
+        BaryonField[CENum][index3] = ceslice[index2+k];
+      }
+    
     for (n = 0; n < NumberOfColours; n++) {
       index2 = (n*GridDimension[0] + i) * GridDimension[2];
       for (k = 0; k < GridDimension[2]; k++) {
@@ -425,6 +456,8 @@ int grid::zEulerSweep(int j, int NumberOfSubgrids, fluxes *SubgridFluxes[],
     delete [] grslice;
   if (DualEnergyFormalism)
     delete [] geslice;
+  if (ColdGasSubgridModel)
+    delete [] ceslice;
   if (NumberOfColours > 0)
     delete [] colslice;
 
@@ -441,6 +474,8 @@ int grid::zEulerSweep(int j, int NumberOfSubgrids, fluxes *SubgridFluxes[],
   delete [] vrs;
   delete [] gels;
   delete [] gers;
+  delete [] cels;
+  delete [] cers;
   delete [] wls;
   delete [] wrs;
   delete [] diffcoef;
@@ -451,6 +486,8 @@ int grid::zEulerSweep(int j, int NumberOfSubgrids, fluxes *SubgridFluxes[],
   delete [] wf;
   delete [] gef;
   delete [] ges;
+  delete [] cef;
+  delete [] ces;
   delete [] colf;
   delete [] colls;
   delete [] colrs;

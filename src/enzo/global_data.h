@@ -419,6 +419,9 @@ EXTERN int GloverChemistryModel;  // 0 is off, on is 1-7, excluding 6
 
 EXTERN int MultiMetals;
 
+/* Cold gas subgrid model (on or off ). */
+EXTERN int ColdGasSubgridModel;
+
 /* Cosmic Ray Model
  * 0: Off - default
  * 1: On, (two fluid model)
@@ -829,6 +832,7 @@ EXTERN int iBy;
 EXTERN int iBz;
 EXTERN int iPhi;
 EXTERN int ieint;
+EXTERN int iecold;
 EXTERN int iD;
 EXTERN int iEtot;
 EXTERN int iS1;

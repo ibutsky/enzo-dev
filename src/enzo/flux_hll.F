@@ -9,7 +9,8 @@ c////////////////////////  SUBROUTINE FLUX_HLL \\\\\\\\\\\\\\\\\\\\\\\\
      &     idiff, idual, eta1, ifallback,
      &     dls, drs, pls, prs, uls, urs, vls, vrs, wls, wrs, gels, gers,
      &     df, uf, vf, wf, ef, gef, ges,
-     &     ncolor, colslice, colls, colrs, colf
+     &     ncolor, colslice, colls, colrs, colf,
+     &     icold, ceslice, cels, cers, cef, ces
      &     )
 
 c  RIEMANN SOLVER USING HLL APPROXIMATION
@@ -42,6 +43,7 @@ c    dl,rs  - density at left and right edges of each cell
 c    pl,rs  - pressure at left and right edges of each cell
 c    pmin   - minimum allowed pressure
 c    ul,rs  - 1-velocity at left and right edges of each cell
+c    icold  - cold gas subgrid model flag (0 = off, 1 = on)
 c    
 c  OUTPUT:
 c    
@@ -64,7 +66,7 @@ c
 c  argument declarations
 c
       INTG_PREC i1, i2, j1, j2, idim, jdim, ncolor, idiff, idual, 
-     $     ifallback
+     $     ifallback, icold
       R_PREC gamma, dt, eta1
       R_PREC dx(idim)
       R_PREC uls(idim,jdim), vls(idim,jdim), wls(idim,jdim),
@@ -74,11 +76,13 @@ c
      $     colls(idim,jdim,ncolor), colrs(idim,jdim,ncolor),
      $     diffcoef(idim,jdim), dslice(idim,jdim), 
      $     uslice(idim,jdim), vslice(idim,jdim), wslice(idim,jdim),
-     $     eslice(idim,jdim), geslice(idim,jdim),
-     $     colslice(idim,jdim,ncolor)
+     $     eslice(idim,jdim), geslice(idim,jdim), ceslice(idim,jdim),
+     $     colslice(idim,jdim,ncolor), cels(idim,jdim),
+     $     cers(idim,jdim) 
       R_PREC df(idim,jdim), ef(idim,jdim), gef(idim,jdim), 
      $     ges(idim,jdim), uf(idim,jdim), vf(idim,jdim), 
-     $     wf(idim,jdim), colf(idim,jdim,ncolor)
+     $     wf(idim,jdim), colf(idim,jdim,ncolor),
+     $     cef(idim,jdim), ces(idim,jdim) 
 c
 c  local declarations
 c
@@ -88,13 +92,14 @@ c
      $     gamma1i, csl0, csr0
       R_PREC cs(ijkn), char1(ijkn), char2(ijkn), csl(ijkn), csr(ijkn),
      $     cw(ijkn), cp(ijkn), diffd(ijkn), diffuu(ijkn), diffuv(ijkn),
-     $     diffuw(ijkn), diffue(ijkn), diffuge(ijkn), 
+     $     diffuw(ijkn), diffue(ijkn), diffuge(ijkn), diffuce(ijkn),
      $     bp(ijkn), bm(ijkn), el(ijkn), er(ijkn), pcent(ijkn),
      $     bm0(ijkn), bp0(ijkn)
       R_PREC dfl(ijkn), dfr(ijkn), ufl(ijkn), ufr(ijkn), 
      $     vfl(ijkn), vfr(ijkn), wfl(ijkn), wfr(ijkn),
      $     efl(ijkn), efr(ijkn), gefl(ijkn), gefr(ijkn),
-     $     gesl(ijkn), gesr(ijkn),
+     $     gesl(ijkn), gesr(ijkn), cefl(ijkn), cefr(ijkn),
+     $     cesl(ijkn), cesr(ijkn),
      $     colfl(ijkn,MAX_COLOR), colfr(ijkn,MAX_COLOR)
       R_PREC sl(ijkn), sr(ijkn), sm(ijkn)
       R_PREC dubl, dubr
@@ -182,6 +187,13 @@ c
      $              dslice(i,j)*geslice(i,j))
             enddo
          endif
+         if (icold .eq. 1) then
+            do i = i1,i2+1
+               diffuce(i) =
+     $              diffcoef(i,j) * (dslice(i-1,j)*ceslice(i-1,j) -
+     $              dslice(i,j)*ceslice(i,j))
+            enddo
+         endif
       else
          do i = i1,i2+1
             diffd(i) = 0._RKIND
@@ -231,6 +243,17 @@ c
          enddo
       endif
 c
+c     Cold gas energy is treated like an advected quantity
+c     
+      if (icold .eq. 1) then
+         do i = i1,i2+1
+            cefl(i) = bm0(i) * cels(i,j) * dls(i,j)
+            cefr(i) = bp0(i) * cers(i,j) * drs(i,j)
+            cesl(i) = bm0(i)
+            cesr(i) = bp0(i)
+         enddo
+      endif
+c
 c     Now for the colors
 c
       do n=1,ncolor
@@ -253,6 +276,11 @@ c
       if (idual .eq. 1) then
          do i = i1,i2+1
             gef(i,j) = sl(i)*gefl(i) + sr(i)*gefr(i) + diffuge(i)
+         enddo
+      endif
+      if (icold .eq. 1) then
+         do i = i1,i2+1
+            cef(i,j) = sl(i)*cefl(i) + sr(i)*cefr(i) + diffuce(i)
          enddo
       endif
 
@@ -278,6 +306,10 @@ c
             if (idual .eq. 1) then
                gef(i,j) = gef(i,j) + sm(i) *
      $              (drs(i,j)*gers(i,j) - dls(i,j)*gels(i,j))
+            endif
+            if (icold .eq. 1) then
+               cef(i,j) = cef(i,j) + sm(i) *
+     $              (drs(i,j)*cers(i,j) - dls(i,j)*cels(i,j))
             endif
          endif
       enddo
@@ -307,6 +339,21 @@ c
          enddo
       endif
 c
+c     Calculate source term for cold gas energy
+c     
+      if (icold .eq. 1) then
+         do i=i1, i2+1
+            pcent(i) = max((gamma-1._RKIND)*ceslice(i,j)*dslice(i,j),
+     $           tiny)
+         enddo
+         do i=i1, i2+1
+            qc = dt/dx(i)
+            ces(i,j) = qc * pcent(i) *
+     $           (sl(i  )*cesl(i  ) + sr(i  )*cesr(i  ) -
+     $            sl(i+1)*cesl(i+1) - sr(i+1)*cesr(i+1))
+         enddo
+      endif
+c
 c     Finally absorb dt/dx into fluxes.  Advected quantities (including
 c     the gas energy) are only multiplied by dt.
 c
@@ -322,6 +369,12 @@ c
       if (idual .eq. 1) then
          do i = i1,i2+1
             gef(i,j) = dt/dx(i)*gef(i,j)
+         enddo
+      endif
+
+      if (icold .eq. 1) then
+         do i = i1,i2+1
+            cef(i,j) = dt/dx(i)*cef(i,j)
          enddo
       endif
 
@@ -357,7 +410,8 @@ c
             write (6,*) 'k', vf(i-1,j), vf(i,j), vf(i+1,j)
             write (6,*) 'l', wf(i-1,j), wf(i,j), wf(i+1,j)
             write (6,*) 'm', ef(i-1,j), ef(i,j), ef(i+1,j)
-            write (6,*) 'n', gef(i-1,j), gef(i,j), gef(i+1,j)
+            write (6,*) 'n1', gef(i-1,j), gef(i,j), gef(i+1,j)
+            write (6,*) 'n2', cef(i-1,j), cef(i,j), cef(i+1,j)
             write (6,*) 'o', dls(i-1,j), dls(i,j), dls(i+1,j)
             write (6,*) 'p', drs(i-1,j), drs(i,j), drs(i+1,j)
             write (6,*) 'q', uls(i-1,j), uls(i,j), uls(i+1,j)
@@ -373,6 +427,13 @@ c
                write (6,*) 'y',geslice(i-1,j)*dslice(i-1,j)*(gamma-1.0), 
      &              geslice(i  ,j)*dslice(i  ,j)*(gamma-1.0), 
      &              geslice(i+1,j)*dslice(i+1,j)*(gamma-1.0)
+            endif
+            if (icold .gt. 0) then
+              write (6,*) 'z1', ceslice(i-1,j), ceslice(i,j),
+     $              ceslice(i+1,j)
+              write (6,*) 'z2',ceslice(i-1,j)*dslice(i-1,j)*(gamma-1.0),
+     &              ceslice(i  ,j)*dslice(i  ,j)*(gamma-1.0),
+     &              ceslice(i+1,j)*dslice(i+1,j)*(gamma-1.0)
             endif
 c     if (gravity .eq. 1) 
 c     &        write (6,*) grslice(i-1,j), grslice(i,j), grslice(i+1,j)
