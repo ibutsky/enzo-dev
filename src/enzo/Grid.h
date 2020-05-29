@@ -1940,6 +1940,30 @@ int zEulerSweep(int j, int NumberOfSubgrids, fluxes *SubgridFluxes[],
 				 float LeftCRDensity, float RightCRDensity,
 				 float CenterCRDensity);
 
+/* Cold Subgrid Model Shock Tube Problems: Initialize grid (returns SUCCESS or FAIL) */
+
+  int ColdShockTubesInitializeGrid(float InitialDiscontinuity,
+                                 float LeftDensity, float RightDensity,
+                                 float LeftVelocityX, float RightVelocityX,
+                                 float LeftVelocityY, float RightVelocityY,
+                                 float LeftVelocityZ, float RightVelocityZ,
+                                 float LeftPressure, float RightPressure,
+                                 float LeftColdGasEnergy, float RightColdGasEnergy);
+  int ColdShockTubesInitializeGrid(float InitialDiscontinuity,
+                                 float SecondDiscontinuity,
+                                 float LeftDensity, float RightDensity,
+                                 float CenterDensity,
+                                 float LeftVelocityX, float RightVelocityX,
+                                 float CenterVelocityX,
+                                 float LeftVelocityY, float RightVelocityY,
+                                 float CenterVelocityY,
+                                 float LeftVelocityZ, float RightVelocityZ,
+                                 float CenterVelocityZ,
+                                 float LeftPressure, float RightPressure,
+                                 float CenterPressure,
+                                 float LeftColdGasEnergy, float RightColdGasEnergy,
+                                 float CenterColdGasEnergy);
+  
 /* Initialize for a uniform grid (returns SUCCESS or FAIL) */
 
   int InitializeUniformGrid(float UniformDensity, float UniformTotalEnergy,

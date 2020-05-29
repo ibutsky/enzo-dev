@@ -57,6 +57,8 @@ int HydroShockTubesInitialize(FILE *fptr, FILE *Outfptr,
 			      HierarchyEntry &TopGrid, TopGridData &MetaData);
 int CRShockTubesInitialize(FILE *fptr, FILE *Outfptr,
 			   HierarchyEntry &TopGrid, TopGridData &MetaData);
+int ColdShockTubesInitialize(FILE *fptr, FILE *Outfptr,
+			     HierarchyEntry &TopGrid, TopGridData &MetaData);
 int WavePoolInitialize(FILE *fptr, FILE *Outfptr, HierarchyEntry &TopGrid,
 		       TopGridData &MetaData);
 int ShockPoolInitialize(FILE *fptr, FILE *Outfptr, HierarchyEntry &TopGrid,
@@ -683,7 +685,10 @@ int InitializeNew(char *filename, HierarchyEntry &TopGrid,
     ret = CRShockTubesInitialize(fptr, Outfptr, TopGrid, MetaData);
   }
 
-
+  // 251 ) Cold Gas Subgrid Model Shocktue Problem
+  if (ProblemType == 251){
+    ret = ColdShockTubesInitialize(fptr, Outfptr, TopGrid, MetaData);
+  }
 
   /* ???? */
   if (ProblemType ==300) {

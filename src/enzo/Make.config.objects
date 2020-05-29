@@ -87,6 +87,7 @@ OBJS_CONFIG_LIB = \
         ClusterInitialize.o \
 	ClusterSMBHSumGasMass.o \
         c_message.o \
+        ColdShockTubesInitialize.o \
         colh2diss.o \
         CollapseTestInitialize.o \
         coll_rates.o \
@@ -384,6 +385,7 @@ OBJS_CONFIG_LIB = \
 	Grid_ClusterInitializeGrid.o \
 	Grid_ClusterSMBHFeedback.o \
         Grid_ClusterSMBHEachGridGasMass.o \
+	Grid_ColdShockTubesInitializeGrid.o \
 	Grid_CollapseTestInitializeGrid.o \
     	Grid_CollectActiveParticles.o \
         Grid_CollectGridInformation.o \
