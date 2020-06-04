@@ -11,7 +11,7 @@ c
      &            dls, drs, pls, prs, gels, gers,
      &            uls, urs, vls, vrs, wls, wrs,
      &            ncolor, colslice, colls, colrs,
-     &            icold, ceslice, cels, cers
+     &            icold, cdslice, cdls, cdrs
      &            )
 c
 c  COMPUTES LEFT AND RIGHT EULERIAN INTERFACE VALUES FOR RIEMANN SOLVER
@@ -52,7 +52,7 @@ c    uslice - extracted 2d slice of the 1-velocity, u
 c    vslice - extracted 2d slice of the 2-velocity, v
 c    wslice - extracted 2d slice of the 3-velocity, w
 c    icold  - cold gas subgrid model flag (0 = off)
-c    ceslice - extracted 2d slice of the cold gas energy, ce
+c    ceslice - extracted 2d slice of the cold gas mass density
 c    
 c  OUTPUT:
 c    dl,rs  - density at left and right edges of each cell
@@ -60,7 +60,7 @@ c    pl,rs  - pressure at left and right edges of each cell
 c    ul,rs  - 1-velocity at left and right edges of each cell
 c    vl,rs  - 2-velocity at left and right edges of each cell
 c    wl,rs  - 3-velocity at left and right edges of each cell
-c    cel,rs - cold gas energy at left and right edges of each cell
+c    cdl,rs - unresolved cold gas density at left and right edges of each cell
 c
 c  EXTERNALS:
 c
@@ -86,13 +86,13 @@ c
       R_PREC  dt, eta1, eta2, gamma
       R_PREC  dslice(idim,jdim),     dxi(idim     ),  pslice(idim,jdim),
      &        uslice(idim,jdim),  vslice(idim,jdim),  wslice(idim,jdim),
-     &        grslice(idim,jdim), geslice(idim,jdim), ceslice(idim,jdim)
+     &        grslice(idim,jdim), geslice(idim,jdim), cdslice(idim,jdim)
       R_PREC  dls(idim,jdim),     drs(idim,jdim), flatten(idim,jdim),
      &        pls(idim,jdim),
      &        prs(idim,jdim),    gels(idim,jdim),    gers(idim,jdim),
      &        uls(idim,jdim),    urs(idim,jdim),     vls(idim,jdim),
      &        vrs(idim,jdim),    wls(idim,jdim),     wrs(idim,jdim),
-     &        cels(idim,jdim),   cers(idim,jdim)
+     &        cdls(idim,jdim),   cdrs(idim,jdim)
       R_PREC  colslice(idim,jdim,ncolor),   colls(idim,jdim,ncolor),
      &        colrs(idim,jdim,ncolor)
 c
@@ -109,7 +109,7 @@ c
      &    ,dv(ijkn),vl(ijkn),vr(ijkn),v6(ijkn)
      &    ,dw(ijkn),wl(ijkn),wr(ijkn),w6(ijkn)
      &    ,dge(ijkn),gel(ijkn),ger(ijkn),ge6(ijkn)
-     &    ,dce(ijkn),cel(ijkn),cer(ijkn),ce6(ijkn)
+     &    ,dcd(ijkn),cdl(ijkn),cdr(ijkn),cd6(ijkn)
      &    ,dla(ijkn),dra(ijkn),pla(ijkn),pra(ijkn),ula(ijkn),ura(ijkn)
      &    ,vla(ijkn),vra(ijkn),wla(ijkn),wra(ijkn)
      &    ,plm(ijkn),prm(ijkn),ulm(ijkn),urm(ijkn)
@@ -121,7 +121,7 @@ c
      &    ,betalp(ijkn),betalm(ijkn),betal0(ijkn),cla(ijkn)
      &    ,betarp(ijkn),betarm(ijkn),betar0(ijkn),cra(ijkn)
      &    ,gela(ijkn),gera(ijkn),gel0(ijkn),ger0(ijkn)
-     &    ,cela(ijkn),cera(ijkn),cel0(ijkn),cer0(ijkn)
+     &    ,cdla(ijkn),cdra(ijkn),cdl0(ijkn),cdr0(ijkn)
      &    ,colla(ijkn,MAX_COLOR),colra(ijkn,MAX_COLOR)
      &    ,coll0(ijkn,MAX_COLOR),colr0(ijkn,MAX_COLOR)
      &    ,dcol(ijkn,MAX_COLOR),coll(ijkn,MAX_COLOR)
@@ -203,6 +203,8 @@ c     Precompute left and right characteristic distances
 c
       do i=1,idim
          cs(i) = sqrt(gamma*pslice(i,j)/dslice(i,j))
+         if (icold .ge. 1) cs(i) = sqrt(gamma*pslice(i,j)/dslice(i,j) +
+     &           gamma*pslice(i,j)/cdslice(i,j))
          if (ipresfree .eq. 1) cs(i) = tiny
          char1(i) = max(0._RKIND, dt*(uslice(i,j)+cs(i)))*dx2i(i)
          char2(i) = max(0._RKIND,-dt*(uslice(i,j)-cs(i)))*dx2i(i)
@@ -227,7 +229,7 @@ c     Compute left and right states for each variable
 c       (steepening, if requested, is only applied to density)
 c
          call intprim(dslice(1,j), uslice(1,j), vslice(1,j), 
-     &        wslice(1,j), pslice(1,j), 
+     &        wslice(1,j), pslice(1,j), cdslice(1,j),
      &        idim, i1, i2, isteep, steepen, iflatten, flatten, 
      &        iposrec, c1, c2, c3, c4, c5, c6, char1, char2, c0,
      &        tmp1, tmp2, tmp3, tmp4, dla, dra, dl0, dr0, 
@@ -235,6 +237,7 @@ c
      &        dv, vl, vr, v6, vla, vra, vl0, vr0,
      &        dw, wl, wr, w6, wla, wra, wl0, wr0,
      &        dp, pl, pr, p6, pla, pra, pl0, pr0,
+     &        dcd, cdl, cdr, cd6, cdla, cdra, cdl0, cdr0,
      &        lem, rem, dxdt2, gamma)
 
       else                      ! iconsrec
@@ -281,9 +284,9 @@ c
      &            char2, c0,dge, gel, ger, ge6, gela, gera, gel0, ger0)
 c
       if (icold .eq. 1)
-     & call intvar(ceslice(1,j), idim, i1, i2, 0_IKIND, steepen,
+     & call intvar(cdslice(1,j), idim, i1, i2, 0_IKIND, steepen,
      &            iflatten, flatten, c1, c2, c3, c4, c5, c6, char1,
-     &            char2, c0, dce, cel, cer, ce6, cela, cera, cel0, cer0)
+     &            char2, c0, dcd, cdl, cdr, cd6, cdla, cdra, cdl0, cdr0)
 c 
       do ic=1,ncolor
         call intvar(colslice(1,j,ic), idim, i1,i2, 0_IKIND, steepen, 
@@ -303,6 +306,7 @@ c
             write(6,*) ula(i-1),ula(i),ula(i+1)
             write(6,*) pla(i-1),pla(i),pla(i+1)
             write(6,*) uslice(i-1,j),uslice(i,j),uslice(i+1,j)
+            write(6,*) cdslice(i-1,j),cdslice(i,j),cdslice(i+1,j)
          endif
       enddo
 #endif /* UNUSED */
@@ -419,6 +423,11 @@ c
      &        (betal0(i)+betalp(i)+betalm(i)))
          drs(i,j) = 1._RKIND/(1._RKIND/dra(i) - 
      &        (betar0(i)+betarp(i)+betarm(i)))
+c IB: Unsure if this belongs here or in the next do block with advected variables
+         cdls(i,j) = 1._RKIND/(1._RKIND/cdla(i) -
+     &        (betal0(i)+betalp(i)+betalm(i)))
+         cdrs(i,j) = 1._RKIND/(1._RKIND/cdra(i) -
+     &        (betar0(i)+betarp(i)+betarm(i)))
       enddo
 c
 c     Take the appropriate state from the advected variables
@@ -428,24 +437,20 @@ c
             vls(i,j)  = vla(i)
             wls(i,j)  = wla(i)
             gels(i,j) = gela(i)
-            cels(i,j) = cela(i)
          else
             vls(i,j)  = vl0(i)
             wls(i,j)  = wl0(i)
             gels(i,j) = gel0(i)
-            cels(i,j) = cel0(i)
          endif
 c
          if (uslice(i  ,j) .ge. 0._RKIND) then
             vrs(i,j)  = vra(i)
             wrs(i,j)  = wra(i)
             gers(i,j) = gera(i)
-            cers(i,j) = cera(i)
          else
             vrs(i,j)  = vr0(i)
             wrs(i,j)  = wr0(i)
             gers(i,j) = ger0(i)
-            cers(i,j) = cer0(i)
          endif
       enddo
 c
@@ -477,7 +482,6 @@ c
             vls(i,j) = vls(i,j) + c7(i)*(dv(i)-v6(i)) + c8(i)*v6(i)
             wls(i,j) = wls(i,j) + c7(i)*(dw(i)-w6(i)) + c8(i)*w6(i)
             gels(i,j) = gels(i,j) + c7(i)*(dge(i)-ge6(i)) + c8(i)*ge6(i)
-            cels(i,j) = cels(i,j) + c7(i)*(dce(i)-ce6(i)) + c8(i)*ce6(i)
          else if (uslice(i,j) .lt. 0._RKIND) then
             c7(i) = -dt*dx2i(i) * cs(i)
             c8(i) = 0.5_RKIND*ft*(dt*dx2i(i))**2 *
@@ -485,7 +489,6 @@ c
             vrs(i,j) = vrs(i,j) + c7(i)*(dv(i)+v6(i)) + c8(i)*v6(i)
             wrs(i,j) = wrs(i,j) + c7(i)*(dw(i)+w6(i)) + c8(i)*w6(i)
             gers(i,j) = gers(i,j) + c7(i)*(dge(i)+ge6(i)) + c8(i)*ge6(i)
-            cers(i,j) = cers(i,j) + c7(i)*(dce(i)+ce6(i)) + c8(i)*ce6(i)
          endif
       enddo
  
@@ -547,9 +550,11 @@ c
          pls(i,j) = pla(i)
          uls(i,j) = ula(i)
          dls(i,j) = dla(i)
+         cdls(i,j) = cdla(i)
          prs(i,j) = pra(i)
          urs(i,j) = ura(i)
          drs(i,j) = dra(i)
+         cdrs(i,j) = cdra(i)
       enddo
 #endif /* NO_CORRECTION */
 c
@@ -560,6 +565,8 @@ c
          prs(i,j) = max(prs(i,j), tiny)
          dls(i,j) = max(dls(i,j), tiny)
          drs(i,j) = max(drs(i,j), tiny)
+         cdls(i,j) = max(cdls(i,j), tiny)
+         cdrs(i,j) = max(cdrs(i,j), tiny)
       enddo
       do ic = 1,ncolor
          do i = i1,i2+1

@@ -180,7 +180,7 @@ const field_type
   FDMDensity = 103,
 
   /* Subgrid model for unresolved cold gas */
-  ColdGasEnergy = 104,
+  ColdGasDensity = 104,   // note, this is the total mass of cold gas divided by the cell volume
 
   FieldUndefined  = 105;
 

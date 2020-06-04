@@ -10,7 +10,7 @@ c////////////////////////  SUBROUTINE FLUX_HLL \\\\\\\\\\\\\\\\\\\\\\\\
      &     dls, drs, pls, prs, uls, urs, vls, vrs, wls, wrs, gels, gers,
      &     df, uf, vf, wf, ef, gef, ges,
      &     ncolor, colslice, colls, colrs, colf,
-     &     icold, ceslice, cels, cers, cef, ces
+     &     icold, cdslice, cdls, cdrs, cdf
      &     )
 
 c  RIEMANN SOLVER USING HLL APPROXIMATION
@@ -76,13 +76,13 @@ c
      $     colls(idim,jdim,ncolor), colrs(idim,jdim,ncolor),
      $     diffcoef(idim,jdim), dslice(idim,jdim), 
      $     uslice(idim,jdim), vslice(idim,jdim), wslice(idim,jdim),
-     $     eslice(idim,jdim), geslice(idim,jdim), ceslice(idim,jdim),
-     $     colslice(idim,jdim,ncolor), cels(idim,jdim),
-     $     cers(idim,jdim) 
+     $     eslice(idim,jdim), geslice(idim,jdim), cdslice(idim,jdim),
+     $     colslice(idim,jdim,ncolor), cdls(idim,jdim),
+     $     cdrs(idim,jdim) 
       R_PREC df(idim,jdim), ef(idim,jdim), gef(idim,jdim), 
      $     ges(idim,jdim), uf(idim,jdim), vf(idim,jdim), 
      $     wf(idim,jdim), colf(idim,jdim,ncolor),
-     $     cef(idim,jdim), ces(idim,jdim) 
+     $     cdf(idim,jdim)
 c
 c  local declarations
 c
@@ -92,14 +92,13 @@ c
      $     gamma1i, csl0, csr0
       R_PREC cs(ijkn), char1(ijkn), char2(ijkn), csl(ijkn), csr(ijkn),
      $     cw(ijkn), cp(ijkn), diffd(ijkn), diffuu(ijkn), diffuv(ijkn),
-     $     diffuw(ijkn), diffue(ijkn), diffuge(ijkn), diffuce(ijkn),
+     $     diffuw(ijkn), diffue(ijkn), diffuge(ijkn), diffucd(ijkn),
      $     bp(ijkn), bm(ijkn), el(ijkn), er(ijkn), pcent(ijkn),
      $     bm0(ijkn), bp0(ijkn)
       R_PREC dfl(ijkn), dfr(ijkn), ufl(ijkn), ufr(ijkn), 
      $     vfl(ijkn), vfr(ijkn), wfl(ijkn), wfr(ijkn),
      $     efl(ijkn), efr(ijkn), gefl(ijkn), gefr(ijkn),
-     $     gesl(ijkn), gesr(ijkn), cefl(ijkn), cefr(ijkn),
-     $     cesl(ijkn), cesr(ijkn),
+     $     gesl(ijkn), gesr(ijkn), cdfl(ijkn), cdfr(ijkn),
      $     colfl(ijkn,MAX_COLOR), colfr(ijkn,MAX_COLOR)
       R_PREC sl(ijkn), sr(ijkn), sm(ijkn)
       R_PREC dubl, dubr
@@ -189,9 +188,8 @@ c
          endif
          if (icold .eq. 1) then
             do i = i1,i2+1
-               diffuce(i) =
-     $              diffcoef(i,j) * (dslice(i-1,j)*ceslice(i-1,j) -
-     $              dslice(i,j)*ceslice(i,j))
+               diffucd(i) = diffcoef(i,j) *
+     $              (cdslice(i-1,j) - cdslice(i,j))
             enddo
          endif
       else
@@ -202,6 +200,7 @@ c
             diffuw(i) = 0._RKIND
             diffue(i) = 0._RKIND
             diffuge(i) = 0._RKIND
+            diffucd(i) = 0._RKIND
          enddo
       endif
 c
@@ -247,10 +246,8 @@ c     Cold gas energy is treated like an advected quantity
 c     
       if (icold .eq. 1) then
          do i = i1,i2+1
-            cefl(i) = bm0(i) * cels(i,j) * dls(i,j)
-            cefr(i) = bp0(i) * cers(i,j) * drs(i,j)
-            cesl(i) = bm0(i)
-            cesr(i) = bp0(i)
+            cdfl(i) = bm0(i) * cdls(i,j)
+            cdfr(i) = bp0(i) * cdrs(i,j)
          enddo
       endif
 c
@@ -280,7 +277,7 @@ c
       endif
       if (icold .eq. 1) then
          do i = i1,i2+1
-            cef(i,j) = sl(i)*cefl(i) + sr(i)*cefr(i) + diffuce(i)
+            cdf(i,j) = sl(i)*cdfl(i) + sr(i)*cdfr(i) + diffucd(i)
          enddo
       endif
 
@@ -308,8 +305,7 @@ c
      $              (drs(i,j)*gers(i,j) - dls(i,j)*gels(i,j))
             endif
             if (icold .eq. 1) then
-               cef(i,j) = cef(i,j) + sm(i) *
-     $              (drs(i,j)*cers(i,j) - dls(i,j)*cels(i,j))
+               cdf(i,j) = cdf(i,j) + sm(i) * (cdrs(i,j) - cdls(i,j))
             endif
          endif
       enddo
@@ -339,20 +335,6 @@ c
          enddo
       endif
 c
-c     Calculate source term for cold gas energy
-c     
-      if (icold .eq. 1) then
-         do i=i1, i2+1
-            pcent(i) = max((gamma-1._RKIND)*ceslice(i,j)*dslice(i,j),
-     $           tiny)
-         enddo
-         do i=i1, i2+1
-            qc = dt/dx(i)
-            ces(i,j) = qc * pcent(i) *
-     $           (sl(i  )*cesl(i  ) + sr(i  )*cesr(i  ) -
-     $            sl(i+1)*cesl(i+1) - sr(i+1)*cesr(i+1))
-         enddo
-      endif
 c
 c     Finally absorb dt/dx into fluxes.  Advected quantities (including
 c     the gas energy) are only multiplied by dt.
@@ -374,7 +356,7 @@ c
 
       if (icold .eq. 1) then
          do i = i1,i2+1
-            cef(i,j) = dt/dx(i)*cef(i,j)
+            cdf(i,j) = dt/dx(i)*cdf(i,j)
          enddo
       endif
 
@@ -411,7 +393,7 @@ c
             write (6,*) 'l', wf(i-1,j), wf(i,j), wf(i+1,j)
             write (6,*) 'm', ef(i-1,j), ef(i,j), ef(i+1,j)
             write (6,*) 'n1', gef(i-1,j), gef(i,j), gef(i+1,j)
-            write (6,*) 'n2', cef(i-1,j), cef(i,j), cef(i+1,j)
+            write (6,*) 'n2', cdf(i-1,j), cdf(i,j), cdf(i+1,j)
             write (6,*) 'o', dls(i-1,j), dls(i,j), dls(i+1,j)
             write (6,*) 'p', drs(i-1,j), drs(i,j), drs(i+1,j)
             write (6,*) 'q', uls(i-1,j), uls(i,j), uls(i+1,j)
@@ -429,11 +411,8 @@ c
      &              geslice(i+1,j)*dslice(i+1,j)*(gamma-1.0)
             endif
             if (icold .gt. 0) then
-              write (6,*) 'z1', ceslice(i-1,j), ceslice(i,j),
-     $              ceslice(i+1,j)
-              write (6,*) 'z2',ceslice(i-1,j)*dslice(i-1,j)*(gamma-1.0),
-     &              ceslice(i  ,j)*dslice(i  ,j)*(gamma-1.0),
-     &              ceslice(i+1,j)*dslice(i+1,j)*(gamma-1.0)
+              write (6,*) 'z1', cdslice(i-1,j), cdslice(i,j),
+     $              cdslice(i+1,j)
             endif
 c     if (gravity .eq. 1) 
 c     &        write (6,*) grslice(i-1,j), grslice(i,j), grslice(i+1,j)

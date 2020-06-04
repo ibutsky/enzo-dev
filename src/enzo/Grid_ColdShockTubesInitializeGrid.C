@@ -22,7 +22,7 @@ int grid::ColdShockTubesInitializeGrid(   float x0,
 					float vyl,  float vyr,
 					float vzl,  float vzr,
 					float pl,   float pr,
-					float cel,  float cer
+					float cdl,  float cdr
 					)
 {  
 
@@ -32,9 +32,9 @@ int grid::ColdShockTubesInitializeGrid(   float x0,
   FieldType[NumberOfBaryonFields++] = Velocity2;
   FieldType[NumberOfBaryonFields++] = Velocity3;
   FieldType[NumberOfBaryonFields++] = TotalEnergy;
-  FieldType[NumberOfBaryonFields++] = ColdGasEnergy;
+  FieldType[NumberOfBaryonFields++] = ColdGasDensity;
   
-  int iCE = FindField(ColdGasEnergy, FieldType, NumberOfBaryonFields);
+  int iCD = FindField(ColdGasDensity, FieldType, NumberOfBaryonFields);
 
   if (DualEnergyFormalism) {
     FieldType[NumberOfBaryonFields++] = InternalEnergy;
@@ -55,7 +55,9 @@ int grid::ColdShockTubesInitializeGrid(   float x0,
   
   /* transform pressure to total energy */
 
-  float etotl, etotr, v2;
+  float etotl, etotr, v2, cel, cer;
+
+  /* TODO: calculate cel and cer */
   v2 = vxl * vxl + vyl * vyl + vzl * vzl;
   etotl = pl / ((Gamma-1.0)*rhol) + 0.5*v2 + cel;
 
@@ -74,7 +76,7 @@ int grid::ColdShockTubesInitializeGrid(   float x0,
       BaryonField[ivy  ][i] = vyl;
       BaryonField[ivz  ][i] = vzl;
       BaryonField[ietot][i] = etotl;
-      BaryonField[iCE ][i] = cel;
+      BaryonField[iCD ][i] = cdl;
       if (DualEnergyFormalism) {
 	BaryonField[ieint][i] = etotl - 0.5*(vxl*vxl+vyl*vyl+vzl*vzl) - cel;
       }
@@ -84,7 +86,7 @@ int grid::ColdShockTubesInitializeGrid(   float x0,
       BaryonField[ivy  ][i] = vyr;
       BaryonField[ivz  ][i] = vzr;
       BaryonField[ietot][i] = etotr;
-      BaryonField[iCE ][i] = cer;
+      BaryonField[iCD ][i] = cdr;
       if (DualEnergyFormalism) {
 	BaryonField[ieint][i] = etotr - 0.5*(vxr*vxr+vyr*vyr+vzr*vzr) - cer;
       }
@@ -102,7 +104,7 @@ int grid::ColdShockTubesInitializeGrid(   float x0,   float x1,
 					float vyl,  float vyr,  float vyc,
 					float vzl,  float vzr,  float vzc,
 					float pl,   float pr,   float pc,
-					float cel,  float cer,  float cec 
+					float cdl,  float cdr,  float cdc 
 					)
 {  
 
@@ -112,12 +114,12 @@ int grid::ColdShockTubesInitializeGrid(   float x0,   float x1,
   FieldType[NumberOfBaryonFields++] = Velocity2;
   FieldType[NumberOfBaryonFields++] = Velocity3;
   FieldType[NumberOfBaryonFields++] = TotalEnergy;
-  FieldType[NumberOfBaryonFields++] = ColdGasEnergy;
+  FieldType[NumberOfBaryonFields++] = ColdGasDensity;
   if (DualEnergyFormalism) {
     FieldType[NumberOfBaryonFields++] = InternalEnergy;
   }
 
-  int iCE = FindField( ColdGasEnergy , FieldType, NumberOfBaryonFields);
+  int iCD = FindField( ColdGasDensity , FieldType, NumberOfBaryonFields);
 
   if (ProcessorNumber != MyProcessorNumber) {
     return SUCCESS;
@@ -134,7 +136,8 @@ int grid::ColdShockTubesInitializeGrid(   float x0,   float x1,
 
   /* transform pressure to total energy */
 
-  float etotl, etotr, etotc, v2;
+  float etotl, etotr, etotc, v2, cel, cer, cec;
+  /* TODO Calculate cel and cer, ce */
   v2 = vxl * vxl + vyl * vyl + vzl * vzl;
   etotl = pl / ((Gamma-1.0)*rhol) + 0.5*v2 + cel;
 
@@ -156,7 +159,7 @@ int grid::ColdShockTubesInitializeGrid(   float x0,   float x1,
       BaryonField[ivy  ][i] = vyl;
       BaryonField[ivz  ][i] = vzl;
       BaryonField[ietot][i] = etotl;
-      BaryonField[iCE ][i] = cel;
+      BaryonField[iCD ][i] = cdl;
       if (DualEnergyFormalism) {
 	BaryonField[ieint][i] = etotl - 0.5*(vxl*vxl+vyl*vyl+vzl*vzl) - cel;
       }
@@ -166,7 +169,7 @@ int grid::ColdShockTubesInitializeGrid(   float x0,   float x1,
       BaryonField[ivy  ][i] = vyc;
       BaryonField[ivz  ][i] = vzc;
       BaryonField[ietot][i] = etotc;
-      BaryonField[iCE ][i] = cec;
+      BaryonField[iCD ][i] = cdc;
       if (DualEnergyFormalism) {
 	BaryonField[ieint][i] = etotc - 0.5*(vxc*vxc+vyc*vyc+vzc*vzc) - cec;
       }
@@ -177,7 +180,7 @@ int grid::ColdShockTubesInitializeGrid(   float x0,   float x1,
       BaryonField[ivy  ][i] = vyr;
       BaryonField[ivz  ][i] = vzr;
       BaryonField[ietot][i] = etotr;
-      BaryonField[iCE ][i] = cer;
+      BaryonField[iCD ][i] = cdr;
       if (DualEnergyFormalism) {
 	BaryonField[ieint][i] = etotr - 0.5*(vxr*vxr+vyr*vyr+vzr*vzr) - cer;
       }

@@ -3,14 +3,15 @@
 c=======================================================================
 c///////////////////////  SUBROUTINE INTPRIM  \\\\\\\\\\\\\\\\\\\\\\\\\\\
 c
-      subroutine intprim(dslice, uslice, vslice, wslice, pslice, 
-     &     idim, i1, i2, isteep, steepen, iflatten, flatten, 
+      subroutine intprim(dslice, uslice, vslice, wslice, pslice,
+     &     cdslice, idim, i1, i2, isteep, steepen, iflatten, flatten, 
      &     iposrec, c1, c2, c3, c4, c5, c6, char1, char2, c0, 
      &     dd, dl, dr, d6, dla, dra, dl0, dr0,
      &     du, ul, ur, u6, ula, ura, ul0, ur0,
      &     dv, vl, vr, v6, vla, vra, vl0, vr0,
      &     dw, wl, wr, w6, wla, wra, wl0, wr0,
      &     dp, pl, pr, p6, pla, pra, pl0, pr0,
+     &     dcd, cdl, cdr, cd6, cdla, cdra, cdl0, cdr0,
      &     lem, rem, dxdt2, gamma)
 c
 c  COMPUTES LEFT AND RIGHT EULERIAN INTERFACE VALUES FOR RIEMANN SOLVER
@@ -62,17 +63,19 @@ c
       R_PREC c1(idim), c2(idim), c3(idim), c4(idim), c5(idim), c6(idim),
      &     char1(idim), char2(idim), c0(idim)
       R_PREC dslice(idim), uslice(idim), vslice(idim), wslice(idim),
-     $     pslice(idim)
+     $     pslice(idim), cdslice(idim)
       R_PREC dla(idim), dra(idim), dl0(idim), dr0(idim),
      $     ula(idim), ura(idim), ul0(idim), ur0(idim),
      $     vla(idim), vra(idim), vl0(idim), vr0(idim),
      $     wla(idim), wra(idim), wl0(idim), wr0(idim),
-     $     pla(idim), pra(idim), pl0(idim), pr0(idim)
+     $     pla(idim), pra(idim), pl0(idim), pr0(idim),
+     $     cdla(idim), cdra(idim), cdl0(idim), cdr0(idim)
       R_PREC dd(idim), dl(idim), dr(idim), d6(idim),
      $     du(idim), ul(idim), ur(idim), u6(idim),
      $     dv(idim), vl(idim), vr(idim), v6(idim),
      $     dw(idim), wl(idim), wr(idim), w6(idim),
-     $     dp(idim), pl(idim), pr(idim), p6(idim)
+     $     dp(idim), pl(idim), pr(idim), p6(idim),
+     $     dcd(idim), cdl(idim), cdr(idim), cd6(idim) 
       R_PREC steepen(idim), flatten(idim)
       R_PREC lem(idim,5,5), rem(idim,5,5), dxdt2(idim)
 c
@@ -81,9 +84,9 @@ c
       INTG_PREC i, m, n
       R_PREC temp1, temp2, dxdt, gamma1, pc, rhoc, du2, dplim, 
      $       limit, one
-      R_PREC qplus(idim,5), qmnus(idim,5), qcent(idim,5), qvanl(idim,5),
-     $     qplusc(idim,5), qmnusc(idim,5), qcentc(idim,5), 
-     $     qvanlc(idim,5), dqc(idim,5)
+      R_PREC qplus(idim,6), qmnus(idim,6), qcent(idim,6), qvanl(idim,6),
+     $     qplusc(idim,6), qmnusc(idim,6), qcentc(idim,6), 
+     $     qvanlc(idim,6), dqc(idim,6)
       parameter (one=1._RKIND)
 c
 c\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\/////////////////////////////////////
@@ -102,10 +105,12 @@ c
      $     qmnus(1,4), qcent(1,4), qvanl(1,4))
       call linslope(pslice, c1, c2, i1, i2, idim, qplus(1,5),
      $     qmnus(1,5), qcent(1,5), qvanl(1,5))
+      call linslope(cdslice, c1, c2, i1, i2, idim, qplus(1,6),
+     $     qmnus(1,6), qcent(1,6), qvanl(1,6))
 c
 c     Project primitive variable differences along characteristics
 c     
-      do n = 1, 5
+      do n = 1, 6
          do i = i1-2, i2+2
             qplusc(i,n) = qplus(i,1) * lem(i,1,n)
             qmnusc(i,n) = qmnus(i,1) * lem(i,1,n)
@@ -113,8 +118,8 @@ c
             qvanlc(i,n) = qvanl(i,1) * lem(i,1,n)
          enddo
       enddo
-      do n = 1, 5
-         do m = 2, 5
+      do n = 1, 6
+         do m = 2, 6
             do i = i1-2, i2+2
                qplusc(i,n) = qplusc(i,n) + qplus(i,m) * lem(i,m,n)
                qmnusc(i,n) = qmnusc(i,n) + qmnus(i,m) * lem(i,m,n)
@@ -197,6 +202,7 @@ c
       call lr_states(vslice, c3, c4, c5, c6, dv, i1, i2, idim, vl, vr)
       call lr_states(wslice, c3, c4, c5, c6, dw, i1, i2, idim, wl, wr)
       call lr_states(pslice, c3, c4, c5, c6, dp, i1, i2, idim, pl, pr)
+      call lr_states(cdslice, c3, c4, c5, c6, dcd, i1, i2, idim,cdl,cdr)
 c
 c     Steepen density if asked for (use precomputed steepening parameter)
 c
@@ -216,6 +222,7 @@ c
       call mono_n_flat(vslice, vl, vr, iflatten, flatten, i1, i2, idim)
       call mono_n_flat(wslice, wl, wr, iflatten, flatten, i1, i2, idim)
       call mono_n_flat(pslice, pl, pr, iflatten, flatten, i1, i2, idim)
+      call mono_n_flat(cdslice, cdl, cdr, iflatten, flatten, i1,i2,idim)
 c
 c    Now construct left and right interface values (eqn 1.12 and 3.3)
 c
@@ -229,6 +236,8 @@ c
      $     dw, w6, wla, wra, wl0, wr0)
       call lr_interface(pslice, pl, pr, char1, char2, c0, i1, i2, idim,
      $     dp, p6, pla, pra, pl0, pr0)
+      call lr_interface(cdslice, cdl, cdr, char1, char2, c0, i1, i2, 
+     $     idim, dcd, cd6, cdla, cdra, cdl0, cdr0)
 c
       return
       end

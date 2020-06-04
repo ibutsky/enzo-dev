@@ -10,6 +10,7 @@ c
      &            idim, jdim, i1, i2, j1, j2, dt, 
      &            gamma, idiff, gravity, idual, eta1, eta2,
      &            df, ef, uf, vf, wf, gef, ges,
+     &            icold, cdslice, cdf,
      &            ncolor, colslice, colf, dfloor
      &                 )
 c
@@ -85,14 +86,15 @@ c
 c  argument declarations
 c
       INTG_PREC gravity, i1, i2, idiff, idim, idual, j1, j2, 
-     &       jdim, ncolor
+     &       jdim, ncolor, icold
       R_PREC    dt, eta1, eta2, gamma, dfloor
       R_PREC diffcoef(idim,jdim),  dslice(idim,jdim),      dx(idim   ),
      &       eslice(idim,jdim), grslice(idim,jdim), geslice(idim,jdim),
-     &       uslice(idim,jdim),  vslice(idim,jdim),  wslice(idim,jdim)
+     &     uslice(idim,jdim),  vslice(idim,jdim),  wslice(idim,jdim),
+     &     cdslice(idim,jdim)
       R_PREC df(idim,jdim),      ef(idim,jdim),      uf(idim,jdim),
      &     vf(idim,jdim),      wf(idim,jdim),     gef(idim,jdim),
-     &     ges(idim,jdim)
+     &     ges(idim,jdim), cdf(idim,jdim)
       R_PREC colslice(idim,jdim,ncolor), colf(idim,jdim,ncolor)
 c
 c  local declarations
@@ -100,7 +102,7 @@ c
       INTG_PREC i, j, n
       R_PREC qa, qb, qc, frac, uadvect, eold
       R_PREC dnu(ijkn), dnuinv(ijkn), uold(ijkn), pcent(ijkn), 
-     &     eratio(ijkn), dadx(ijkn),  dddx(ijkn)
+     &     eratio(ijkn), dadx(ijkn),  dddx(ijkn), cdnu(ijkn)
       R_PREC min_color
       parameter(min_color=1e-5_RKIND*tiny)
 c
@@ -126,6 +128,7 @@ c
        do i=i1, i2
           qc = dt/dx(i)
           dnu(i) = dslice(i,j) + (df(i,j) - df(i+1,j))
+          cdnu(i) = cdslice(i,j) + (cdf(i,j) - cdf(i+1,j))
           dnuinv(i) = 1._RKIND/dnu(i)
 c          write(21,*) i, dnu(i), dub(i), db(i), ub(i)
 c          uadvect = (dnu(i)-dslice(i,j))/(qc*(db(i+1)-db(i)))
@@ -276,6 +279,7 @@ c  Update the new density
 c
        do i=i1, i2
           dslice(i,j) = dnu(i)
+          cdslice(i,j) = cdnu(i)
        enddo
 c
       enddo

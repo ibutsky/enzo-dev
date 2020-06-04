@@ -35,7 +35,7 @@ int ColdShockTubesInitialize(FILE *fptr, FILE *Outfptr,
   char *Vel1Name = "x-velocity";
   char *Vel2Name = "y-velocity";
   char *Vel3Name = "z-velocity";
-  char *CEName = "ColdGasEnergy";
+  char *CDensName = "ColdGasDensity";
   char *ColourName = "colour";
 
   /* declarations */
@@ -52,7 +52,7 @@ int ColdShockTubesInitialize(FILE *fptr, FILE *Outfptr,
     LeftVelocityY = 0.0, RightVelocityY = 0.0, CenterVelocityY = 0.0,
     LeftVelocityZ = 0.0, RightVelocityZ = 0.0, CenterVelocityZ = 0.0,
     LeftPressure = 1.0, RightPressure = 1.0, CenterPressure = 1.0,
-    LeftColdGasEnergy = 1.0, RightColdGasEnergy = 1.0, CenterColdGasEnergy = 1.0;
+    LeftColdGasDensity = 1.0, RightColdGasDensity = 1.0, CenterColdGasDensity = 1.0;
   
   /* read input from file */
 
@@ -78,8 +78,8 @@ int ColdShockTubesInitialize(FILE *fptr, FILE *Outfptr,
 		  &LeftPressure);
     ret += sscanf(line, "HydroShockTubesLeftDensity = %"FSYM, 
 		  &LeftDensity);
-    ret += sscanf(line, "HydroShockTubesLeftColdGasEnergy = %"FSYM,
-      &LeftColdGasEnergy);
+    ret += sscanf(line, "HydroShockTubesLeftColdGasDensity = %"FSYM,
+      &LeftColdGasDensity);
     ret += sscanf(line, "HydroShockTubesRightVelocityX = %"FSYM, 
 		  &RightVelocityX);
     ret += sscanf(line, "HydroShockTubesRightVelocityY = %"FSYM, 
@@ -90,8 +90,8 @@ int ColdShockTubesInitialize(FILE *fptr, FILE *Outfptr,
 		  &RightPressure);
     ret += sscanf(line, "HydroShockTubesRightDensity = %"FSYM,
       &RightDensity);
-    ret += sscanf(line, "HydroShockTubesRightColdGasEnergy = %"FSYM,
-      &RightColdGasEnergy);
+    ret += sscanf(line, "HydroShockTubesRightColdGasDensity = %"FSYM,
+      &RightColdGasDensity);
     ret += sscanf(line, "HydroShockTubesCenterVelocityX = %"FSYM, 
 		  &CenterVelocityX);
     ret += sscanf(line, "HydroShockTubesCenterVelocityY = %"FSYM, 
@@ -102,8 +102,8 @@ int ColdShockTubesInitialize(FILE *fptr, FILE *Outfptr,
 		  &CenterPressure);
     ret += sscanf(line, "HydroShockTubesCenterDensity = %"FSYM,
       &CenterDensity);
-    ret += sscanf(line, "HydroShockTubesCenterColdGasEnergy = %"FSYM,
-      &CenterColdGasEnergy);
+    ret += sscanf(line, "HydroShockTubesCenterColdGasDensity = %"FSYM,
+      &CenterColdGasDensity);
 
     /* if the line is suspicious, issue a warning */
 
@@ -131,7 +131,7 @@ int ColdShockTubesInitialize(FILE *fptr, FILE *Outfptr,
 				  LeftVelocityY,  RightVelocityY, CenterVelocityY,
 				  LeftVelocityZ,  RightVelocityZ, CenterVelocityZ,
 				  LeftPressure,   RightPressure,  CenterPressure,
-				 LeftColdGasEnergy, RightColdGasEnergy, CenterColdGasEnergy);
+				  LeftColdGasDensity, RightColdGasDensity, CenterColdGasDensity);
 
   /* Convert minimum initial overdensity for refinement to mass
      (unless MinimumMass itself was actually set). */
@@ -175,7 +175,7 @@ int ColdShockTubesInitialize(FILE *fptr, FILE *Outfptr,
 	   LeftVelocityY,  RightVelocityY, CenterVelocityY,
 	   LeftVelocityZ,  RightVelocityZ, CenterVelocityZ,
 	   LeftPressure,   RightPressure,  CenterPressure,
-	   LeftColdGasEnergy, RightColdGasEnergy, CenterColdGasEnergy);
+	   LeftColdGasDensity, RightColdGasDensity, CenterColdGasDensity);
 	Temp = Temp->NextGridThisLevel;
       }
     } // end: loop over levels
@@ -209,7 +209,7 @@ int ColdShockTubesInitialize(FILE *fptr, FILE *Outfptr,
   DataLabel[count++] = Vel2Name;
   DataLabel[count++] = Vel3Name;
   DataLabel[count++] = TEName;
-  DataLabel[count++] = CEName;
+  DataLabel[count++] = CDensName;
   if (DualEnergyFormalism) {
     DataLabel[count++] = GEName;
   }
@@ -244,10 +244,10 @@ int ColdShockTubesInitialize(FILE *fptr, FILE *Outfptr,
       LeftPressure);
     fprintf(Outfptr, "HydroShockTubesRightPressure        = %"FSYM"\n",
       RightPressure);
-    fprintf(Outfptr, "HydroShockTubesLeftColdGasEnergy        = %"FSYM"\n",
-      LeftColdGasEnergy);
-    fprintf(Outfptr, "HydroShockTubesRightColdGasEnergy       = %"FSYM"\n",
-      RightColdGasEnergy);
+    fprintf(Outfptr, "HydroShockTubesLeftColdGasDensity        = %"FSYM"\n",
+      LeftColdGasDensity);
+    fprintf(Outfptr, "HydroShockTubesRightColdGasDensity       = %"FSYM"\n",
+      RightColdGasDensity);
 
     fprintf(Outfptr, "HydroShockTubesSecondDiscontinuity = %"FSYM"\n",
 	    SecondDiscontinuity);
@@ -261,8 +261,8 @@ int ColdShockTubesInitialize(FILE *fptr, FILE *Outfptr,
 	    CenterVelocityZ);
     fprintf(Outfptr, "HydroShockTubesCenterPressure      = %"FSYM"\n",
 	    CenterPressure);
-    fprintf(Outfptr, "HydroShockTubesCenterColdGasEnergy     = %"FSYM"\n",
-      CenterColdGasEnergy);
+    fprintf(Outfptr, "HydroShockTubesCenterColdGasDensity     = %"FSYM"\n",
+      CenterColdGasDensity);
 
   }
 
