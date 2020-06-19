@@ -203,6 +203,9 @@ c     Precompute left and right characteristic distances
 c
       do i=1,idim
          cs(i) = sqrt(gamma*pslice(i,j)/dslice(i,j))
+         if (icold .eq. 1) then
+            cs(i) = sqrt(gamma*pslice(i,j)/(dslice(i,j) + cdslice(i,j)))
+         endif
          if (ipresfree .eq. 1) cs(i) = tiny
          char1(i) = max(0._RKIND, dt*(uslice(i,j)+cs(i)))*dx2i(i)
          char2(i) = max(0._RKIND,-dt*(uslice(i,j)-cs(i)))*dx2i(i)

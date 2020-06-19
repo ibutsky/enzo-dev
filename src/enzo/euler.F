@@ -102,7 +102,8 @@ c
       INTG_PREC i, j, n
       R_PREC qa, qb, qc, frac, uadvect, eold
       R_PREC dnu(ijkn), dnuinv(ijkn), uold(ijkn), pcent(ijkn), 
-     &     eratio(ijkn), dadx(ijkn),  dddx(ijkn), cdnu(ijkn)
+     &     eratio(ijkn), dadx(ijkn),  dddx(ijkn), cdnu(ijkn),
+     &     adnu(ijkn), adnuinv(ijkn)
       R_PREC min_color
       parameter(min_color=1e-5_RKIND*tiny)
 c
@@ -129,7 +130,9 @@ c
           qc = dt/dx(i)
           dnu(i) = dslice(i,j) + (df(i,j) - df(i+1,j))
           cdnu(i) = cdslice(i,j) + (cdf(i,j) - cdf(i+1,j))
+          adnu(i) = dnu(i) + cdnu(i)
           dnuinv(i) = 1._RKIND/dnu(i)
+          adnuinv(i) = 1._RKIND/adnu(i)
 c          write(21,*) i, dnu(i), dub(i), db(i), ub(i)
 c          uadvect = (dnu(i)-dslice(i,j))/(qc*(db(i+1)-db(i)))
 c          if (uslice(i,j)/(uadvect) .gt. 1.8 .and. uadvect .ne. 0.0)
@@ -144,19 +147,29 @@ c
           if (dfloor .gt. 0._RKIND) then
               dnu(i)    = max( dnu(i), dfloor)
               dnuinv(i) = 1._RKIND / dnu(i)
+              adnu(i)   = max( adnu(i), dfloor)
+              adnuinv(i) = 1._RKIND / adnu(i)
           endif
 
           uold(i)     = uslice(i,j)
 c          write(20,*) i, uslice(i,j), (uslice(i,j)*dslice(i,j) +
 c     &         qc*(duub(i)-duub(i+1) +  pb(i) -  pb(i+1)))/dnu(i),
 c     &               dnu(i), dslice(i,j)
-          uslice(i,j) = (uslice(i,j)*dslice(i,j) +
-     $         (uf(i,j) - uf(i+1,j))) * dnuinv(i)
-          vslice(i,j) = (vslice(i,j)*dslice(i,j) +
-     $         (vf(i,j) - vf(i+1,j))) * dnuinv(i)
-          wslice(i,j) = (wslice(i,j)*dslice(i,j) +
-     $         (wf(i,j) - wf(i+1,j))) * dnuinv(i)
-
+          if (icold .eq. 0._RKIND) then
+             uslice(i,j) = (uslice(i,j)*dslice(i,j) +
+     $            (uf(i,j) - uf(i+1,j))) * dnuinv(i)
+             vslice(i,j) = (vslice(i,j)*dslice(i,j) +
+     $            (vf(i,j) - vf(i+1,j))) * dnuinv(i)
+             wslice(i,j) = (wslice(i,j)*dslice(i,j) +
+     $            (wf(i,j) - wf(i+1,j))) * dnuinv(i)
+          else
+             uslice(i,j) = (uslice(i,j)*(dslice(i,j)+cdslice(i,j)) +
+     $            (uf(i,j) - uf(i+1,j))) * adnuinv(i)
+             vslice(i,j) = (vslice(i,j)*(dslice(i,j)+cdslice(i,j)) +
+     $            (vf(i,j) - vf(i+1,j))) * adnuinv(i)
+             wslice(i,j) = (wslice(i,j)*(dslice(i,j)+cdslice(i,j)) +
+     $            (wf(i,j) - wf(i+1,j))) * adnuinv(i)
+          endif
 c          if ((eslice(i,j)*dslice(i,j) +
 c     &         qc*(dueb(i)-dueb(i+1) + upb(i) - upb(i+1)))/dnu(i) .lt.
 c     &         0.5*eslice(i,j)) then
@@ -228,18 +241,39 @@ c      Compute slopes and enforce limited monotonoctiy on dddx
 c
        if (gravity .eq. 1) then
           do i=i1,i2
-             dadx(i) = grslice(i+1,j) - grslice(i-1,j)
-             dddx(i) =  dslice(i+1,j) -  dslice(i-1,j)
+             if (icold .eq. 1) then
+                dadx(i) = grslice(i+1,j) - grslice(i-1,j)
+                dddx(i) = dslice(i+1,j) + cdslice(i+1,j) -
+     &               dslice(i-1,j) - cdslice(i-1,j)
 c
-             dddx(i) = 2._RKIND*( dslice(i,j) - max(dslice(i,j) -
-     &            0.5_RKIND*dddx(i), min(dslice(i,j), dslice(i-1,j))))
-             dddx(i) = 2._RKIND*(-dslice(i,j) + max(dslice(i,j) +
-     &            0.5_RKIND*dddx(i), min(dslice(i,j), dslice(i+1,j))))
+                dddx(i) = 2._RKIND*(dslice(i,j)+cdslice(i,j) -
+     &              max(dslice(i,j)+cdslice(i,j) - 0.5_RKIND*dddx(i),
+     &              min(dslice(i,j)+cdslice(i,j),
+     &              dslice(i-1,j)+cdslice(i-1,j))))
+                dddx(i) = 2._RKIND*(-dslice(i,j)-cdslice(i,j) +
+     &               max(dslice(i,j)+cdslice(i,j) + 0.5_RKIND*dddx(i),
+     &               min(dslice(i,j)+cdslice(i,j),
+     &               dslice(i+1,j)+cdslice(i+1,j))))
+             else
+                dadx(i) = grslice(i+1,j) - grslice(i-1,j)
+                dddx(i) =  dslice(i+1,j) -  dslice(i-1,j)
+c                                                                                                                                                                                             
+                dddx(i) = 2._RKIND*( dslice(i,j) - max(dslice(i,j) -
+     &              0.5_RKIND*dddx(i), min(dslice(i,j), dslice(i-1,j))))
+                dddx(i) = 2._RKIND*(-dslice(i,j) + max(dslice(i,j) +
+     &               0.5_RKIND*dddx(i), min(dslice(i,j), dslice(i+1,j))))
+             endif
           enddo
 c
           do i=i1, i2
-             grslice(i,j) = grslice(i,j) + 
-     &            0.5_RKIND*dadx(i)*dddx(i)/(12._RKIND*dslice(i,j))
+             if (icold .eq. 1) then
+                grslice(i,j) = grslice(i,j) + 
+     &               0.5_RKIND*dadx(i)*dddx(i)/(12._RKIND*
+     &               (dslice(i,j)+cdslice(i,j))
+             else
+                grslice(i,j) = grslice(i,j) +
+     &               0.5_RKIND*dadx(i)*dddx(i)/(12._RKIND*dslice(i,j))
+             endif
           enddo
        endif
 c
@@ -254,17 +288,23 @@ c
 #define GRAVITY_METHOD1
 
 #ifdef GRAVITY_METHOD1 /* (right) */
-             uslice(i,j) = uslice(i,j) + dt*grslice(i,j)*0.5_RKIND*
-     &            (dslice(i,j)*dnuinv(i)+1._RKIND)
+             if (icold .eq. 1) then
+                uslice(i,j) = uslice(i,j) + dt*grslice(i,j)*0.5_RKIND*
+     &               ((dslice(i,j)+cdslice(i,j))*adnuinv(i)+1._RKIND)
+             else
+                uslice(i,j) = uslice(i,j) + dt*grslice(i,j)*0.5_RKIND*
+     &               (dslice(i,j)*dnuinv(i)+1._RKIND)
+             endif
              eslice(i,j) = eslice(i,j) + dt*grslice(i,j)*0.5_RKIND*
      &            (uslice(i,j) + uold(i)*dslice(i,j)*dnuinv(i))
-             if (eslice(i,j) .le. 0) write(6,*) 'eu1',i,j,eslice(i,j),
+             if (eslice(i,j) .le. 0) write(6,*) 'eu1',i,j,eslice(i,j),                                                                                             
      &            dslice(i,j),dnu(i),uslice(i,j),grslice(i,j),
      &            dt*grslice(i,j)*0.5_RKIND*
      &            (dslice(i,j)/dnu(i)+1._RKIND),
      &            dt*grslice(i,j)*0.5_RKIND*
      &            (uslice(i,j) + uold(i)*dslice(i,j)/dnu(i))
              eslice(i,j) = max(eslice(i,j), tiny)
+             
 #endif /* GRAVITY_METHOD1 */
 
 #ifdef GRAVITY_METHOD2 /* (wrong) */
