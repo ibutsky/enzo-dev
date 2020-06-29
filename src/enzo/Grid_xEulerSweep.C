@@ -38,16 +38,17 @@ int grid::xEulerSweep(int k, int NumberOfSubgrids, fluxes *SubgridFluxes[],
   int dim = 0, idim = 1, jdim = 2;
   int dim_p1 = dim+1;   // To match definition in calcdiss
   int ierr = 0;
-
+  int zero = 0;
+  int one = 1;
+  
   /* Find fields: density, total energy, velocity1-3. */
 
-  int DensNum, GENum, Vel1Num, Vel2Num, Vel3Num, TENum, CDensNum;
+  int DensNum, GENum, Vel1Num, Vel2Num, Vel3Num, TENum,
+      CDensNum, CVel1Num, CVel2Num, CVel3Num;
     
   this->IdentifyPhysicalQuantities(DensNum, GENum, Vel1Num, Vel2Num, 
 				   Vel3Num, TENum);
-  if (ColdGasSubgridModel)
-        if ((CDensNum = FindField(ColdGasDensity, FieldType, NumberOfBaryonFields)) < 0)
-          ENZO_FAIL("Cannot Find Cold Gas Density Field");
+  this->IdentifyColdGasPhysicalQuantities(CDensNum, CVel1Num, CVel2Num, CVel3Num);
 
   int nxz, nyz, nzz, ixyz;
 
@@ -60,7 +61,7 @@ int grid::xEulerSweep(int k, int NumberOfSubgrids, fluxes *SubgridFluxes[],
   // Copy from field to slice
 
   float *dslice, *eslice, *uslice, *vslice, *wslice, *grslice, *geslice, 
-    *colslice, *pslice, *cdslice;
+    *colslice, *pslice, *cdslice, *cuslice, *cvslice, *cwslice;
 
   int size = GridDimension[0] * GridDimension[1];
   dslice = new float[size];
@@ -77,6 +78,9 @@ int grid::xEulerSweep(int k, int NumberOfSubgrids, fluxes *SubgridFluxes[],
   }
   if (ColdGasSubgridModel){
     cdslice = new float[size];
+    cuslice = new float[size];
+    cvslice = new float[size];
+    cwslice = new float[size];    
   }
   if (NumberOfColours > 0) {
     colslice = new float[NumberOfColours * size];  
@@ -132,6 +136,10 @@ int grid::xEulerSweep(int k, int NumberOfSubgrids, fluxes *SubgridFluxes[],
       for (i = 0; i < GridDimension[0]; i++) {
         index3 = (k*GridDimension[1] + j) * GridDimension[0] + i;
         cdslice[index2+i] = BaryonField[CDensNum][index3];
+        cuslice[index2+i] = BaryonField[CVel1Num][index3];
+        cvslice[index2+i] = BaryonField[CVel2Num][index3];
+        cwslice[index2+i] = BaryonField[CVel3Num][index3];
+	
       }
     for (n = 0; n < NumberOfColours; n++) {
       index2 = (n*GridDimension[1] + j) * GridDimension[0];
@@ -146,7 +154,8 @@ int grid::xEulerSweep(int k, int NumberOfSubgrids, fluxes *SubgridFluxes[],
 
   float *dls, *drs, *flatten, *pbar, *pls, *prs, *ubar, *uls, *urs, *vls, 
     *vrs, *gels, *gers, *wls, *wrs, *diffcoef, *df, *ef, *uf, *vf, *wf, *gef,
-    *ges, *colf, *colls, *colrs, *cdls, *cdrs, *cdf;
+    *ges, *colf, *colls, *colrs, *cdls, *cdrs, *cdf, *culs, *curs, *cuf,
+    *cvls, *cvrs, *cvf, *cwls, *cwrs, *cwf, *cpres, *dummy;
 
   dls = new float[size];	
   drs = new float[size];	
@@ -174,11 +183,27 @@ int grid::xEulerSweep(int k, int NumberOfSubgrids, fluxes *SubgridFluxes[],
   cdls = new float[size];
   cdrs = new float[size];
   cdf = new float[size];
+  culs = new float[size];
+  curs = new float[size];
+  cvls = new float[size];
+  cvrs = new float[size];
+  cwls = new float[size];
+  cwrs = new float[size];
+  cuf = new float[size];
+  cvf = new float[size];
+  cwf = new float[size];
+  cpres = new float[size];
+  dummy = new float[size];
   colf = new float[NumberOfColours*size];  
   colls = new float[NumberOfColours*size];  
   colrs = new float[NumberOfColours*size];
 
+  if (ColdGasSubgridModel){
+    for (int index = 0; index < size; index++)
+        cpres[index] = 0;
+  }
 
+ 
   /* Convert start and end indexes into 1-based for FORTRAN */
 
   int is, ie, js, je, is_m3, ie_p3, ie_p1, k_p1;
@@ -220,7 +245,7 @@ int grid::xEulerSweep(int k, int NumberOfSubgrids, fluxes *SubgridFluxes[],
 
   /* Compute Eulerian left and right states at zone edges via interpolation */
 
-  if (ReconstructionMethod == PPM)
+  if (ReconstructionMethod == PPM){
     FORTRAN_NAME(inteuler)(dslice, pslice, &GravityOn, grslice, geslice, uslice,
 			   vslice, wslice, CellWidthTemp[0], flatten,
 			   &GridDimension[0], &GridDimension[1],
@@ -230,8 +255,20 @@ int grid::xEulerSweep(int k, int NumberOfSubgrids, fluxes *SubgridFluxes[],
 			   &ConservativeReconstruction, &PositiveReconstruction,
 			   &dtFixed, &Gamma, &PressureFree, 
 			   dls, drs, pls, prs, gels, gers, uls, urs, vls, vrs,
-			   wls, wrs, &NumberOfColours, colslice, colls, colrs,
-			   &ColdGasSubgridModel, cdslice, cdls, cdrs);
+			   wls, wrs, &NumberOfColours, colslice, colls, colrs);
+
+    if (ColdGasSubgridModel){
+      FORTRAN_NAME(inteuler)(cdslice, cpres, &GravityOn, grslice, cpres, cuslice,
+                           cvslice, cwslice, CellWidthTemp[0], flatten,
+                           &GridDimension[0], &GridDimension[1],
+			     &is, &ie, &js, &je, &zero,
+                           &DualEnergyFormalismEta1, &DualEnergyFormalismEta2,
+                           &PPMSteepeningParameter, &PPMFlatteningParameter,
+                           &ConservativeReconstruction, &PositiveReconstruction,
+			     &dtFixed, &Gamma, &one, cdls, cdrs, dummy, dummy, dummy, dummy,
+			     culs, curs, cvls, cvrs, cwls, cwrs, &zero, dummy, dummy, dummy);
+    }
+  }
 
   /* Compute (Lagrangian part of the) Riemann problem at each zone boundary */
 
@@ -268,8 +305,22 @@ int grid::xEulerSweep(int k, int NumberOfSubgrids, fluxes *SubgridFluxes[],
 			   dls, drs, pls, prs, uls, urs,
 			   vls, vrs, wls, wrs, gels, gers,
 			   df, uf, vf, wf, ef, gef, ges,
-			   &NumberOfColours, colslice, colls, colrs, colf,
-                           &ColdGasSubgridModel, cdslice, cdls, cdrs, cdf);
+			   &NumberOfColours, colslice, colls, colrs, colf);
+
+
+    if (ColdGasSubgridModel)
+          FORTRAN_NAME(flux_hll)(cdslice, cpres, cpres, cuslice, cvslice, cwslice,
+                           CellWidthTemp[0], diffcoef,
+                           &GridDimension[0], &GridDimension[1],
+                           &is, &ie, &js, &je, &dtFixed, &Gamma,
+            		   &PPMDiffusionParameter, &zero,
+                           &DualEnergyFormalismEta1,
+                           &RiemannSolverFallback,
+                           cdls, cdrs, dummy, dummy, culs, curs,
+                           cvls, cvrs, cwls, cwrs, dummy, dummy,
+                           cdf, cuf, cvf, cwf, dummy, dummy, dummy,
+			   &zero, colslice, dummy, dummy, dummy);
+    
 
     break;
 
@@ -297,6 +348,9 @@ int grid::xEulerSweep(int k, int NumberOfSubgrids, fluxes *SubgridFluxes[],
       gef[index] = 0;
       ges[index] = 0;
       cdf[index] = 0;
+      cuf[index] = 0;
+      cvf[index] = 0;
+      cwf[index] = 0;      
     }
     break;
 
@@ -310,8 +364,16 @@ int grid::xEulerSweep(int k, int NumberOfSubgrids, fluxes *SubgridFluxes[],
 		      &is, &ie, &js, &je, &dtFixed, &Gamma, 
 		      &PPMDiffusionParameter, &GravityOn, &DualEnergyFormalism, 
 		      &DualEnergyFormalismEta1, &DualEnergyFormalismEta2,
-		      df, ef, uf, vf, wf, gef, ges,&ColdGasSubgridModel,
-		      cdslice, cdf, &NumberOfColours, colslice, colf, &SmallRho);
+		      df, ef, uf, vf, wf, gef, ges, &NumberOfColours, colslice, colf, &SmallRho);
+
+  if (ColdGasSubgridModel)
+      FORTRAN_NAME(euler)(cdslice, cpres, grslice, cpres, cuslice, cvslice, cwslice,
+                      CellWidthTemp[0], diffcoef,
+                      &GridDimension[0], &GridDimension[1],
+                      &is, &ie, &js, &je, &dtFixed, &Gamma,
+		      &PPMDiffusionParameter, &GravityOn, &zero,
+                      &DualEnergyFormalismEta1, &DualEnergyFormalismEta2,
+		      cdf, dummy, cuf, cvf, cwf, dummy, dummy, &zero, dummy, dummy, &SmallRho);
 
   /* If necessary, recompute the pressure to correctly set ge and e */
 
@@ -379,6 +441,16 @@ int grid::xEulerSweep(int k, int NumberOfSubgrids, fluxes *SubgridFluxes[],
         if (ColdGasSubgridModel){
           SubgridFluxes[n]->LeftFluxes [CDensNum][dim][offset] = cdf[lindex];
           SubgridFluxes[n]->RightFluxes[CDensNum][dim][offset] = cdf[rindex];
+	  SubgridFluxes[n]->LeftFluxes [CVel1Num][dim][offset] = cuf[lindex];
+	  SubgridFluxes[n]->RightFluxes[CVel1Num][dim][offset] = cuf[rindex];
+	  if (nyz > 1) {
+	    SubgridFluxes[n]->LeftFluxes [CVel2Num][dim][offset] = cvf[lindex];
+	    SubgridFluxes[n]->RightFluxes[CVel2Num][dim][offset] = cvf[rindex];
+	   }                                                                                                                                
+	  if (nzz > 1) {
+	    SubgridFluxes[n]->LeftFluxes [CVel3Num][dim][offset] = cwf[lindex];
+	    SubgridFluxes[n]->RightFluxes[CVel3Num][dim][offset] = cwf[rindex];
+	  }
         } // ENDIF ColdGasSubgridModel
 
 	for (ncolour = 0; ncolour < NumberOfColours; ncolour++) {
@@ -434,6 +506,11 @@ int grid::xEulerSweep(int k, int NumberOfSubgrids, fluxes *SubgridFluxes[],
       for (i = 0; i < GridDimension[0]; i++) {
         index3 = (k*GridDimension[1] + j)*GridDimension[0] + i;
         BaryonField[CDensNum][index3] = cdslice[index2+i];
+        BaryonField[CVel1Num][index3] = cuslice[index2+i];
+	if (GridRank > 1)
+	  BaryonField[CVel2Num][index3] = cvslice[index2+i];
+	if (GridRank > 2)
+	  BaryonField[CVel3Num][index3] = cwslice[index2+i];
       }
     
     for (n = 0; n < NumberOfColours; n++) {
@@ -457,8 +534,13 @@ int grid::xEulerSweep(int k, int NumberOfSubgrids, fluxes *SubgridFluxes[],
     delete [] grslice;
   if (DualEnergyFormalism)
     delete [] geslice;
-  if (ColdGasSubgridModel)
+  if (ColdGasSubgridModel){
     delete [] cdslice;
+    delete [] cuslice;
+    delete [] cvslice;
+    delete [] cwslice;
+  }
+  
   if (NumberOfColours > 0)
     delete [] colslice;
 
@@ -488,6 +570,17 @@ int grid::xEulerSweep(int k, int NumberOfSubgrids, fluxes *SubgridFluxes[],
   delete [] gef;
   delete [] ges;
   delete [] cdf;
+  delete [] cpres;
+  delete [] dummy;
+  delete [] culs;
+  delete [] curs;
+  delete [] cvls;
+  delete [] cvrs;
+  delete [] cwls;
+  delete [] cwrs;
+  delete [] cuf;
+  delete [] cvf;
+  delete [] cwf;
   delete [] colf;
   delete [] colls;
   delete [] colrs;

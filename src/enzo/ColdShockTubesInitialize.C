@@ -36,10 +36,13 @@ int ColdShockTubesInitialize(FILE *fptr, FILE *Outfptr,
   char *Vel2Name = "y-velocity";
   char *Vel3Name = "z-velocity";
   char *CDensName = "ColdGasDensity";
+  char *CVel1Name = "ColdGasVelocity1";
+  char *CVel2Name = "ColdGasVelocity2";
+  char *CVel3Name = "ColdGasVelocity3";
   char *ColourName = "colour";
 
   /* declarations */
-
+  
   char  line[MAX_LINE_LENGTH];
   int   dim, ret, level, sphere, i;
 
@@ -210,9 +213,13 @@ int ColdShockTubesInitialize(FILE *fptr, FILE *Outfptr,
   DataLabel[count++] = Vel3Name;
   DataLabel[count++] = TEName;
   DataLabel[count++] = CDensName;
+  DataLabel[count++] = CVel1Name;
+  DataLabel[count++] = CVel2Name;
+  DataLabel[count++] = CVel3Name;  
   if (DualEnergyFormalism) {
     DataLabel[count++] = GEName;
   }
+  
 
   for (i = 0; i < count; i++)
     DataUnits[i] = NULL;

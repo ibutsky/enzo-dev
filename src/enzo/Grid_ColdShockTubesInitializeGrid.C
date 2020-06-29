@@ -25,7 +25,7 @@ int grid::ColdShockTubesInitializeGrid(   float x0,
 					float cdl,  float cdr
 					)
 {  
-
+  printf("test\n");
   NumberOfBaryonFields = 0;
   FieldType[NumberOfBaryonFields++] = Density;
   FieldType[NumberOfBaryonFields++] = Velocity1;
@@ -33,8 +33,9 @@ int grid::ColdShockTubesInitializeGrid(   float x0,
   FieldType[NumberOfBaryonFields++] = Velocity3;
   FieldType[NumberOfBaryonFields++] = TotalEnergy;
   FieldType[NumberOfBaryonFields++] = ColdGasDensity;
-  
-  int iCD = FindField(ColdGasDensity, FieldType, NumberOfBaryonFields);
+  FieldType[NumberOfBaryonFields++] = ColdGasVelocity1;
+  FieldType[NumberOfBaryonFields++] = ColdGasVelocity2;
+  FieldType[NumberOfBaryonFields++] = ColdGasVelocity3;
 
   if (DualEnergyFormalism) {
     FieldType[NumberOfBaryonFields++] = InternalEnergy;
@@ -43,6 +44,11 @@ int grid::ColdShockTubesInitializeGrid(   float x0,
   if (ProcessorNumber != MyProcessorNumber) {
     return SUCCESS;
   }
+
+  int iCD, iCV1, iCV2, iCV3;
+    //int iCD = FindField(ColdGasDensity, FieldType, NumberOfBaryonFields);
+  this->IdentifyColdGasPhysicalQuantities(iCD, iCV1, iCV2, iCV3);                                                                                                                   
+  printf("test\n");
 
   int size = 1, activesize = 1, dim;
   for (dim = 0; dim < GridRank; dim++)
@@ -77,6 +83,10 @@ int grid::ColdShockTubesInitializeGrid(   float x0,
       BaryonField[ivz  ][i] = vzl;
       BaryonField[ietot][i] = etotl;
       BaryonField[iCD ][i] = cdl;
+      BaryonField[iCV1][i] = 0;
+      BaryonField[iCV2][i] = 0;
+      BaryonField[iCV3][i] = 0;
+
       if (DualEnergyFormalism) {
 	BaryonField[ieint][i] = etotl - 0.5*(vxl*vxl+vyl*vyl+vzl*vzl) - cel;
       }
@@ -87,6 +97,9 @@ int grid::ColdShockTubesInitializeGrid(   float x0,
       BaryonField[ivz  ][i] = vzr;
       BaryonField[ietot][i] = etotr;
       BaryonField[iCD ][i] = cdr;
+      BaryonField[iCV1][i] = 0;
+      BaryonField[iCV2][i] = 0;
+      BaryonField[iCV3][i] = 0;
       if (DualEnergyFormalism) {
 	BaryonField[ieint][i] = etotr - 0.5*(vxr*vxr+vyr*vyr+vzr*vzr) - cer;
       }
@@ -115,11 +128,15 @@ int grid::ColdShockTubesInitializeGrid(   float x0,   float x1,
   FieldType[NumberOfBaryonFields++] = Velocity3;
   FieldType[NumberOfBaryonFields++] = TotalEnergy;
   FieldType[NumberOfBaryonFields++] = ColdGasDensity;
+  FieldType[NumberOfBaryonFields++] = ColdGasVelocity1;
+  FieldType[NumberOfBaryonFields++] = ColdGasVelocity2;
+  FieldType[NumberOfBaryonFields++] = ColdGasVelocity3;
   if (DualEnergyFormalism) {
     FieldType[NumberOfBaryonFields++] = InternalEnergy;
   }
 
-  int iCD = FindField( ColdGasDensity , FieldType, NumberOfBaryonFields);
+  int iCD, iCV1, iCV2, iCV3;
+  this->IdentifyColdGasPhysicalQuantities(iCD, iCV1, iCV2, iCV3);
 
   if (ProcessorNumber != MyProcessorNumber) {
     return SUCCESS;
@@ -160,6 +177,9 @@ int grid::ColdShockTubesInitializeGrid(   float x0,   float x1,
       BaryonField[ivz  ][i] = vzl;
       BaryonField[ietot][i] = etotl;
       BaryonField[iCD ][i] = cdl;
+      BaryonField[iCV1][i] = 0;
+      BaryonField[iCV2][i] = 0;
+      BaryonField[iCV3][i] = 0;
       if (DualEnergyFormalism) {
 	BaryonField[ieint][i] = etotl - 0.5*(vxl*vxl+vyl*vyl+vzl*vzl) - cel;
       }
@@ -170,6 +190,9 @@ int grid::ColdShockTubesInitializeGrid(   float x0,   float x1,
       BaryonField[ivz  ][i] = vzc;
       BaryonField[ietot][i] = etotc;
       BaryonField[iCD ][i] = cdc;
+      BaryonField[iCV1][i] = 0;
+      BaryonField[iCV2][i] = 0;
+      BaryonField[iCV3][i] = 0;
       if (DualEnergyFormalism) {
 	BaryonField[ieint][i] = etotc - 0.5*(vxc*vxc+vyc*vyc+vzc*vzc) - cec;
       }
@@ -181,6 +204,9 @@ int grid::ColdShockTubesInitializeGrid(   float x0,   float x1,
       BaryonField[ivz  ][i] = vzr;
       BaryonField[ietot][i] = etotr;
       BaryonField[iCD ][i] = cdr;
+      BaryonField[iCV1][i] = 0;
+      BaryonField[iCV2][i] = 0;
+      BaryonField[iCV3][i] = 0;
       if (DualEnergyFormalism) {
 	BaryonField[ieint][i] = etotr - 0.5*(vxr*vxr+vyr*vyr+vzr*vzr) - cer;
       }

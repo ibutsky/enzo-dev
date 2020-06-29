@@ -28,8 +28,7 @@ extern "C" void FORTRAN_NAME(inteuler)(
 		float *dt, float *gamma, int *ipresfree, float *dls, float *drs, 
 		float *pls, float *prs, float *gels, float *gers, float *uls, 
 		float *urs, float *vls, float *vrs, float *wls, float *wrs, 
-		int *ncolor, float *colslice, float *colls, float *colrs,
-		int *icold  , float *cdslice, float *cdls, float *cdrs);
+		int *ncolor, float *colslice, float *colls, float *colrs);
 
 extern "C" void FORTRAN_NAME(twoshock)(
 		float *dls, float *drs, float *pls, float *prs, 
@@ -63,8 +62,7 @@ extern "C" void FORTRAN_NAME(flux_hll)(
 	   float *wls, float *wrs, float *gels, float *gers, 
            float *df, float *ef, float *uf, float *vf, float *wf, float *gef, 
 	   float *ges,
-           int *ncolor, float *colslice, float *colls, float *colrs, float *colf,
-	   int *icold, float *cdslice, float *cdls, float *cdrs, float *cdf);
+           int *ncolor, float *colslice, float *colls, float *colrs, float *colf);
 
 extern "C" void FORTRAN_NAME(flux_hllc)(
            float *dslice, float *eslice, float *geslice, float *uslice, 
@@ -86,6 +84,5 @@ extern "C" void FORTRAN_NAME(euler)(
 		int *i2, int *j1, int *j2, float *dt, float *gamma, int *idiff, 
 		int *gravity, int *idual, float *eta1, float *eta2, float *df, 
 		float *ef, float *uf, float *vf, float *wf, float *gef,
-		float *ges, int *icold, float *cdslice, float*cdf,
+		float *ges,
 		int *ncolor, float *colslice, float *colf, float *dfloor);
-
