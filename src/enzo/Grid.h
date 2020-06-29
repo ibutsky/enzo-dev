@@ -1801,6 +1801,8 @@ int TransferSubgridActiveParticles(grid* Subgrids[], int NumberOfSubgrids,
 				 int &Vel2Num, int &Vel3Num, int &TENum,
 				 int &B1Num, int &B2Num, int &B3Num, int &PhiNum, int &CRNum);
 
+  int IdentifyColdGasPhysicalQuantities(int &CDensNum, int &CVel1Num, int &CVel2Num, int &CVel3Num);
+  
   /* Identify driving fields */
 
   int IdentifyDrivingFields(int &Drive1Num, int &Drive2Num, int &Drive3Num);

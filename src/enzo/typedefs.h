@@ -181,8 +181,10 @@ const field_type
 
   /* Subgrid model for unresolved cold gas */
   ColdGasDensity = 104,   // note, this is the total mass of cold gas divided by the cell volume
-
-  FieldUndefined  = 105;
+  ColdGasVelocity1 = 105,
+  ColdGasVelocity2 = 106,
+  ColdGasVelocity3 = 107, 
+  FieldUndefined  = 108;
 
 /*
 enum field_type {Density, TotalEnergy, InternalEnergy, Pressure,

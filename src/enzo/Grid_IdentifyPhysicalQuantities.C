@@ -263,6 +263,22 @@ int grid::IdentifyPhysicalQuantities(int &DensNum, int &GENum, int &Vel1Num,
 
 }
 
+int grid::IdentifyColdGasPhysicalQuantities(int &CDensNum, int &CVel1Num,
+					 int &CVel2Num, int &CVel3Num){
+
+  if (ColdGasSubgridModel){
+    if ((CDensNum = FindField(ColdGasDensity, FieldType, NumberOfBaryonFields)) < 0)
+          ENZO_FAIL("Cannot Find Cold Gas Density Field");
+    if ((CVel1Num = FindField(ColdGasVelocity1, FieldType, NumberOfBaryonFields)) < 0)
+          ENZO_FAIL("Cannot Find Cold Gas Velocity1 Field");
+    if ((CVel2Num = FindField(ColdGasVelocity2, FieldType, NumberOfBaryonFields)) < 0)
+          ENZO_FAIL("Cannot Find Cold Gas Velocity2 Field");
+    if ((CVel3Num = FindField(ColdGasVelocity3, FieldType, NumberOfBaryonFields)) < 0)
+          ENZO_FAIL("Cannot Find Cold Gas Velocity3 Field");
+  }
+  return SUCCESS;
+}
+
 int grid::IdentifyDrivingFields(int &Drive1Num, int &Drive2Num, int &Drive3Num)
 {
 
