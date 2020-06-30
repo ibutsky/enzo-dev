@@ -191,7 +191,7 @@ c
             endif
          enddo
       endif
-c
+c 
 c     Precompute left and right characteristic distances
 c
       do i=1,idim
@@ -264,7 +264,6 @@ c
      &           du, ul, ur, ula, ura, ul0, ur0,
      &           dp, pl, pr, pla, pra, pl0, pr0)
          endif
-
       endif                     ! iconsrec
 
 c
@@ -326,6 +325,7 @@ c     a) left side
 c
       do i = i1, i2+1
          f1 = 1._RKIND/cla(i)
+         if (cla(i) .eq. 0._RKIND) f1 = 0._RKIND
          betalp(i) = (ula(i)-ulp(i)) + (pla(i)-plp(i))*f1
          betalm(i) = (ula(i)-ulm(i)) - (pla(i)-plm(i))*f1
          betal0(i) = (pla(i)-pl0(i))*f1**2 + 1._RKIND/dla(i) 
@@ -348,6 +348,7 @@ c          endif
 c
       do i = i1, i2+1
          f1 = 0.5_RKIND/cla(i)
+         if (cla(i) .eq. 0._RKIND) f1 = 0._RKIND
          betalp(i) = -betalp(i)*f1
          betalm(i) = +betalm(i)*f1
       enddo
@@ -362,6 +363,7 @@ c     b) right side
 c
       do i = i1, i2+1
          f1 = 1._RKIND/cra(i)
+         if (cra(i) .eq. 0._RKIND) f1 = 0._RKIND
          betarp(i) = (ura(i)-urp(i)) + (pra(i)-prp(i))*f1
          betarm(i) = (ura(i)-urm(i)) - (pra(i)-prm(i))*f1
          betar0(i) = (pra(i)-pr0(i))*f1**2 + 1._RKIND/dra(i) - 
@@ -384,9 +386,11 @@ c          endif
 c
       do i = i1, i2+1
          f1 = 0.5_RKIND/cra(i)
+         if (cra(i) .eq. 0._RKIND) f1 = 0._RKIND
          betarp(i) = -betarp(i)*f1
          betarm(i) = +betarm(i)*f1
       enddo
+
 c
       do i = i1, i2+1
          if (cp(i) .ge. 0) betarp(i) = 0._RKIND
