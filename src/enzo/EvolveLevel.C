@@ -688,6 +688,12 @@ int EvolveLevel(TopGridData *MetaData, LevelHierarchyEntry *LevelArray[],
       }*/
 #endif
 
+      /* Update Cold Gas Subgrid Model Source Terms */
+      if (ColdGasSubgridModel){
+	if(Grids[grid1]->GridData->ComputeColdGasSourceTerms() == FAIL){
+	  ENZO_FAIL("Error in grid->ComputeColdGasSourceTerms.\n");
+	}
+      }
 
       /* Include 'star' particle creation and feedback. */
 

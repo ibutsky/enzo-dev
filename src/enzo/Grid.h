@@ -450,6 +450,9 @@ public:
    int ComputeCRDiffusion(); // CR Diffusion Method 
    int ComputeCRDiffusionTimeStep(float &dt);
 
+/* Member functions for dealing with Cold Gas Subgrid Model */
+  int ComputeColdGasSourceTerms(); 
+
 /* Baryons: Copy current solution to Old solution (returns success/fail)
     (for step #16) */
 

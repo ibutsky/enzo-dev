@@ -408,6 +408,7 @@ OBJS_CONFIG_LIB = \
 	Grid_ComputeAccelerations.o \
 	Grid_ComputeAccelerationsFromExternalPotential.o \
 	Grid_ComputeCellCenteredField.o \
+	Grid_ComputeColdGasSourceTerms.o \
 	Grid_ComputeConductionTimeStep.o \
 	Grid_ComputeCoolingTime.o \
         Grid_ComputeCRDiffusion.o \
