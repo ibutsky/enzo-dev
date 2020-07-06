@@ -834,6 +834,10 @@ int SetDefaultGlobalValues(TopGridData &MetaData)
 
   /* End of Stanford Hydro additions */
 
+  ColdGasSubgridModel = 0;
+  CGSMCharacteristicTemperature = 1e4;
+  CGSMDragCoefficient = 0;
+
   /* test problem values */
   TestProblemData.HydrogenFractionByMass = 0.76;
 

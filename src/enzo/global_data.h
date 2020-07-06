@@ -421,6 +421,8 @@ EXTERN int MultiMetals;
 
 /* Cold gas subgrid model (on or off ). */
 EXTERN int ColdGasSubgridModel;
+EXTERN float CGSMCharacteristicTemperature; 
+EXTERN float CGSMDragCoefficient;
 
 /* Cosmic Ray Model
  * 0: Off - default
