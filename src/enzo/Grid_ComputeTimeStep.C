@@ -83,6 +83,7 @@ float grid::ComputeTimeStep()
   float dtCR           = huge_number;
   float dtGasDrag      = huge_number;
   float dtCooling      = huge_number;
+  float dtColdSubgrid  = huge_number;
   int dim, i, j, k, index, result;
   float dtQuantum        = huge_number;  //FDM
 
@@ -443,12 +444,13 @@ float grid::ComputeTimeStep()
     if (this->ComputeCoolingTime(cooling_time, TRUE) == FAIL) {
       ENZO_FAIL("Error in grid->ComputeCoolingTime.\n");
     }
-
+    
     for (k = GridStartIndex[2]; k < GridEndIndex[2]; k++) {
       for (j = GridStartIndex[1]; j < GridEndIndex[1]; j++) {
 	index = GRIDINDEX_NOGHOST(GridStartIndex[0], j, k);
 	for (i = GridStartIndex[0]; i < GridEndIndex[0]; i++, index++) {
 	  dtCooling = min(dtCooling, cooling_time[index]);
+	  
 	}
       }
     }
@@ -485,6 +487,30 @@ float grid::ComputeTimeStep()
 
   }
 
+  /* Cold Gas Subgrid Model Time Stepping */
+  if((ColdGasSubgridModel > 0) & (CGSMDragCoefficient > 0)){
+
+    float rho, rho_c;
+    float drag_units = DensityUnits * aUnits;
+    float drag_coef = CGSMDragCoefficient / drag_units;
+    int DensNum, GENum, Vel1Num, Vel2Num, Vel3Num, TENum,
+      CDensNum, CVel1Num, CVel2Num, CVel3Num;
+
+    this->IdentifyPhysicalQuantities(DensNum, GENum, Vel1Num, Vel2Num,
+                                   Vel3Num, TENum);
+    this->IdentifyColdGasPhysicalQuantities(CDensNum, CVel1Num, CVel2Num, CVel3Num);
+
+
+    for (int index = 0; index < size; index++){
+	  rho = BaryonField[DensNum][index];
+	  rho_c = BaryonField[DensNum][index];
+          dtColdSubgrid = min(dtColdSubgrid, rho * rho_c / (drag_coef*(rho + rho_c)));
+    }
+
+    dtColdSubgrid *= CourantSafetyNumber;
+
+  }
+
   /* 8) calculate minimum timestep */
  
   dt = min(dtBaryons, dtParticles);
@@ -497,6 +523,8 @@ float grid::ComputeTimeStep()
   dt = min(dt, dtGasDrag);
   dt = min(dt, dtCooling);
   dt = min(dt, dtQuantum); //FDM
+  dt = min(dt, dtColdSubgrid);
+ 
   
 #ifdef TRANSFER
 
@@ -567,6 +595,8 @@ float grid::ComputeTimeStep()
       printf("Drag = %"ESYM" ",(dtGasDrag));
     if (QuantumPressure)
       printf("Quantum = %"ESYM" ",(dtQuantum));//FDM
+    if (ColdGasSubgridModel)
+      printf("ColdSubgrid = %"ESYM" ", dtColdSubgrid);
     printf(")\n");
   }
  

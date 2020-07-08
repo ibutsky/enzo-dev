@@ -76,29 +76,30 @@ int grid::ComputeColdGasSourceTerms(){
 	idx = ELT(i,j,k);
 
 	// subtract out old kinetic energy from total energy
-	BaryonField[TENum][idx] -= 0.5 * (BaryonField[Vel1Num][idx]*BaryonField[Vel1Num][idx] +
-						  BaryonField[Vel2Num][idx]*BaryonField[Vel2Num][idx] +
-						  BaryonField[Vel3Num][idx]*BaryonField[Vel3Num][idx]);
+	//	BaryonField[TENum][idx] -= 0.5 * (BaryonField[Vel1Num][idx]*BaryonField[Vel1Num][idx] + 
+	//					  ((GridRank > 1) ? BaryonField[Vel2Num][idx]*BaryonField[Vel2Num][idx] : 0) +
+	//					  ((GridRank > 2) ? BaryonField[Vel3Num][idx]*BaryonField[Vel3Num][idx] : 0));
 
-	dvx = BaryonField[Vel1Num][idx] - BaryonField[CVel1Num][idx];
-	BaryonField[Vel1Num][idx] -= dtFixed * drag_coef * dvx / BaryonField[DensNum][idx];
-	BaryonField[CVel1Num][idx] += dtFixed * drag_coef * dvx / BaryonField[CDensNum][idx];
+	if (BaryonField[CDensNum][idx] > 0) {
+	  dvx = BaryonField[Vel1Num][idx] - BaryonField[CVel1Num][idx];
+	  BaryonField[Vel1Num][idx] -= dtFixed * drag_coef * dvx / BaryonField[DensNum][idx];
+	  BaryonField[CVel1Num][idx] += dtFixed * drag_coef * dvx / BaryonField[CDensNum][idx];
 
-	if (GridRank > 1){
-	  dvy = BaryonField[Vel2Num][idx] - BaryonField[CVel2Num][idx];
-	  BaryonField[Vel2Num][idx] -= dtFixed * drag_coef * dvy / BaryonField[DensNum][idx];
-	  BaryonField[CVel2Num][idx] += dtFixed * drag_coef * dvy / BaryonField[CDensNum][idx];
-	}
-	if (GridRank > 2){
-	  dvz = BaryonField[Vel3Num][idx] - BaryonField[CVel3Num][idx];
-	  BaryonField[Vel3Num][idx] -= dtFixed * drag_coef * dvz / BaryonField[DensNum][idx];
-	  BaryonField[CVel3Num][idx] += dtFixed * drag_coef * dvz / BaryonField[CDensNum][idx];
-	}
-
+	  if (GridRank > 1){
+	    dvy = BaryonField[Vel2Num][idx] - BaryonField[CVel2Num][idx];
+	    BaryonField[Vel2Num][idx] -= dtFixed * drag_coef * dvy / BaryonField[DensNum][idx];
+	    BaryonField[CVel2Num][idx] += dtFixed * drag_coef * dvy / BaryonField[CDensNum][idx];
+	  }
+	  if (GridRank > 2){
+	    dvz = BaryonField[Vel3Num][idx] - BaryonField[CVel3Num][idx];
+	    BaryonField[Vel3Num][idx] -= dtFixed * drag_coef * dvz / BaryonField[DensNum][idx];
+	    BaryonField[CVel3Num][idx] += dtFixed * drag_coef * dvz / BaryonField[CDensNum][idx];
+	  }
+	}  
 	// add back the updated kinetic energy
-	BaryonField[TENum][idx] += 0.5 * (BaryonField[Vel1Num][idx]*BaryonField[Vel1Num][idx] +
-	                                 BaryonField[Vel2Num][idx]*BaryonField[Vel2Num][idx] +	
-	                                 BaryonField[Vel3Num][idx]*BaryonField[Vel3Num][idx]);
+	//        BaryonField[TENum][idx] += 0.5 * (BaryonField[Vel1Num][idx]*BaryonField[Vel1Num][idx] +
+	//                          (GridRank > 1) ? BaryonField[Vel2Num][idx]*BaryonField[Vel2Num][idx] : 0 +
+	//                          (GridRank > 2) ? BaryonField[Vel3Num][idx]*BaryonField[Vel3Num][idx] : 0);
 
   } // end triple for
 
