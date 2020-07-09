@@ -9,7 +9,7 @@ c////////////////////////  SUBROUTINE FLUX_HLL \\\\\\\\\\\\\\\\\\\\\\\\
      &     idiff, idual, eta1, ifallback,
      &     dls, drs, pls, prs, uls, urs, vls, vrs, wls, wrs, gels, gers,
      &     df, uf, vf, wf, ef, gef, ges,
-     &     ncolor, colslice, colls, colrs, colf, icold, cdslice
+     &     ncolor, colslice, colls, colrs, colf
      &     )
 
 c  RIEMANN SOLVER USING HLL APPROXIMATION
@@ -64,7 +64,7 @@ c
 c  argument declarations
 c
       INTG_PREC i1, i2, j1, j2, idim, jdim, ncolor, idiff, idual, 
-     $     ifallback, icold
+     $     ifallback
       R_PREC gamma, dt, eta1
       R_PREC dx(idim)
       R_PREC uls(idim,jdim), vls(idim,jdim), wls(idim,jdim),
@@ -75,7 +75,7 @@ c
      $     diffcoef(idim,jdim), dslice(idim,jdim), 
      $     uslice(idim,jdim), vslice(idim,jdim), wslice(idim,jdim),
      $     eslice(idim,jdim), geslice(idim,jdim),
-     $     colslice(idim,jdim,ncolor), cdslice(idim,jdim)
+     $     colslice(idim,jdim,ncolor)
       R_PREC df(idim,jdim), ef(idim,jdim), gef(idim,jdim), 
      $     ges(idim,jdim), uf(idim,jdim), vf(idim,jdim), 
      $     wf(idim,jdim), colf(idim,jdim,ncolor)
@@ -131,7 +131,6 @@ c
 c     Compute characteristics using Roe-averaged values
 c
          cs(i) = sqrt(gamma1*max((hroe - 0.5_RKIND*v2), tiny))
-         if (icold .ge. 0) cs(i)=cs(i)/sqrt(1+cdslice(i,j)/dslice(i,j))
          char1(i) = vroe1 - cs(i)
          char2(i) = vroe1 + cs(i)
       enddo
