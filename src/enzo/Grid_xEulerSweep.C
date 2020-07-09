@@ -255,7 +255,8 @@ int grid::xEulerSweep(int k, int NumberOfSubgrids, fluxes *SubgridFluxes[],
 			   &ConservativeReconstruction, &PositiveReconstruction,
 			   &dtFixed, &Gamma, &PressureFree, 
 			   dls, drs, pls, prs, gels, gers, uls, urs, vls, vrs,
-			   wls, wrs, &NumberOfColours, colslice, colls, colrs);
+			   wls, wrs, &NumberOfColours, colslice, colls, colrs,
+			   &zero, cdslice);
 
     if (ColdGasSubgridModel){
       FORTRAN_NAME(inteuler)(cdslice, cpres, &GravityOn, grslice, cpres, cuslice,
@@ -266,7 +267,8 @@ int grid::xEulerSweep(int k, int NumberOfSubgrids, fluxes *SubgridFluxes[],
                            &PPMSteepeningParameter, &PPMFlatteningParameter,
                            &ConservativeReconstruction, &PositiveReconstruction,
 			     &dtFixed, &Gamma, &one, cdls, cdrs, dummy, dummy, dummy, dummy,
-			     culs, curs, cvls, cvrs, cwls, cwrs, &zero, dummy, dummy, dummy);
+			     culs, curs, cvls, cvrs, cwls, cwrs, &zero, dummy, dummy, dummy,
+			     &zero, cdslice);
     }
   }
 
@@ -305,7 +307,8 @@ int grid::xEulerSweep(int k, int NumberOfSubgrids, fluxes *SubgridFluxes[],
 			   dls, drs, pls, prs, uls, urs,
 			   vls, vrs, wls, wrs, gels, gers,
 			   df, uf, vf, wf, ef, gef, ges,
-			   &NumberOfColours, colslice, colls, colrs, colf);
+			   &NumberOfColours, colslice, colls, colrs, colf,
+			   &zero, cdslice);
 
 
     if (ColdGasSubgridModel)
@@ -319,7 +322,8 @@ int grid::xEulerSweep(int k, int NumberOfSubgrids, fluxes *SubgridFluxes[],
                            cdls, cdrs, dummy, dummy, culs, curs,
                            cvls, cvrs, cwls, cwrs, dummy, dummy,
                            cdf, cuf, cvf, cwf, dummy, dummy, dummy,
-			   &zero, colslice, dummy, dummy, dummy);
+			   &zero, colslice, dummy, dummy, dummy,
+			   &zero, cdslice);
     
 
     break;

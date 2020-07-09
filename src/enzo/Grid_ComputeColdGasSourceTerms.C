@@ -67,25 +67,25 @@ int grid::ComputeColdGasSourceTerms(){
     ENZO_FAIL("Error in GetUnits.");
   }
 
-  float drag_units = MassUnits / LengthUnits / LengthUnits / TimeUnits / TimeUnits;
+  float drag_units = DensityUnits / TimeUnits;
   drag_coef = CGSMDragCoefficient / drag_units; 
- 
   for (k = GridStartIndex[2]; k <= GridEndIndex[2]; k++)
     for (j = GridStartIndex[1]; j <= GridEndIndex[1]; j++)
       for (i = GridStartIndex[0]; i <= GridEndIndex[0]; i++) {
 	idx = ELT(i,j,k);
 
 	// subtract out old kinetic energy from total energy
-	//	BaryonField[TENum][idx] -= 0.5 * (BaryonField[Vel1Num][idx]*BaryonField[Vel1Num][idx] + 
-	//					  ((GridRank > 1) ? BaryonField[Vel2Num][idx]*BaryonField[Vel2Num][idx] : 0) +
-	//					  ((GridRank > 2) ? BaryonField[Vel3Num][idx]*BaryonField[Vel3Num][idx] : 0));
+	BaryonField[TENum][idx] -= 0.5 * (BaryonField[Vel1Num][idx]*BaryonField[Vel1Num][idx] + 
+						  ((GridRank > 1) ? BaryonField[Vel2Num][idx]*BaryonField[Vel2Num][idx] : 0) +
+						  ((GridRank > 2) ? BaryonField[Vel3Num][idx]*BaryonField[Vel3Num][idx] : 0));
 
 	if (BaryonField[CDensNum][idx] > 0) {
 	  dvx = BaryonField[Vel1Num][idx] - BaryonField[CVel1Num][idx];
 	  BaryonField[Vel1Num][idx] -= dtFixed * drag_coef * dvx / BaryonField[DensNum][idx];
 	  BaryonField[CVel1Num][idx] += dtFixed * drag_coef * dvx / BaryonField[CDensNum][idx];
-
-	  if (GridRank > 1){
+	  //	  if (DualEnergyFormalism)
+	  // BaryonField[GENum][idx] +=  dtFixed * drag_coef * dvx *dvx;
+	  /*	  if (GridRank > 1){
 	    dvy = BaryonField[Vel2Num][idx] - BaryonField[CVel2Num][idx];
 	    BaryonField[Vel2Num][idx] -= dtFixed * drag_coef * dvy / BaryonField[DensNum][idx];
 	    BaryonField[CVel2Num][idx] += dtFixed * drag_coef * dvy / BaryonField[CDensNum][idx];
@@ -94,12 +94,13 @@ int grid::ComputeColdGasSourceTerms(){
 	    dvz = BaryonField[Vel3Num][idx] - BaryonField[CVel3Num][idx];
 	    BaryonField[Vel3Num][idx] -= dtFixed * drag_coef * dvz / BaryonField[DensNum][idx];
 	    BaryonField[CVel3Num][idx] += dtFixed * drag_coef * dvz / BaryonField[CDensNum][idx];
+	    }*/
 	  }
-	}  
+
 	// add back the updated kinetic energy
-	//        BaryonField[TENum][idx] += 0.5 * (BaryonField[Vel1Num][idx]*BaryonField[Vel1Num][idx] +
-	//                          (GridRank > 1) ? BaryonField[Vel2Num][idx]*BaryonField[Vel2Num][idx] : 0 +
-	//                          (GridRank > 2) ? BaryonField[Vel3Num][idx]*BaryonField[Vel3Num][idx] : 0);
+	        BaryonField[TENum][idx] += 0.5 * (BaryonField[Vel1Num][idx]*BaryonField[Vel1Num][idx] +
+	                          (GridRank > 1) ? BaryonField[Vel2Num][idx]*BaryonField[Vel2Num][idx] : 0 +
+	                          (GridRank > 2) ? BaryonField[Vel3Num][idx]*BaryonField[Vel3Num][idx] : 0);
 
   } // end triple for
 

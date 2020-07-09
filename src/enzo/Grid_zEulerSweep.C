@@ -254,19 +254,21 @@ int grid::zEulerSweep(int j, int NumberOfSubgrids, fluxes *SubgridFluxes[],
 			   &ConservativeReconstruction, &PositiveReconstruction,
 			   &dtFixed, &Gamma, &PressureFree, 
 			   dls, drs, pls, prs, gels, gers, uls, urs, vls, vrs,
-			   wls, wrs, &NumberOfColours, colslice, colls, colrs);
+			   wls, wrs, &NumberOfColours, colslice, colls, colrs,
+			   &ColdGasSubgridModel, cdslice);
 
 
     if (ColdGasSubgridModel){
        FORTRAN_NAME(inteuler)(cdslice, cpres, &GravityOn, grslice, cpres, cuslice,
-                           cvslice, cwslice, CellWidthTemp[0], flatten,
-                           &GridDimension[0], &GridDimension[1],
-                           &is, &ie, &js, &je, &zero,
-                           &DualEnergyFormalismEta1, &DualEnergyFormalismEta2,
-                           &PPMSteepeningParameter, &PPMFlatteningParameter,
-                           &ConservativeReconstruction, &PositiveReconstruction,
-                           &dtFixed, &Gamma, &one, cdls, cdrs, dummy, dummy, dummy, dummy,
-                           culs, curs, cvls, cvrs, cwls, cwrs, &zero, dummy, dummy, dummy);
+			      cvslice, cwslice, CellWidthTemp[0], flatten,
+			      &GridDimension[0], &GridDimension[1],
+			      &is, &ie, &js, &je, &zero,
+			      &DualEnergyFormalismEta1, &DualEnergyFormalismEta2,
+			      &PPMSteepeningParameter, &PPMFlatteningParameter,
+			      &ConservativeReconstruction, &PositiveReconstruction,
+			      &dtFixed, &Gamma, &one, cdls, cdrs, dummy, dummy, dummy, dummy,
+			      culs, curs, cvls, cvrs, cwls, cwrs, &zero, dummy, dummy, dummy,
+			      &ColdGasSubgridModel, cdslice);
     }
   }
 
@@ -305,20 +307,22 @@ int grid::zEulerSweep(int j, int NumberOfSubgrids, fluxes *SubgridFluxes[],
 			   dls, drs, pls, prs, uls, urs,
 			   vls, vrs, wls, wrs, gels, gers,
 			   df, uf, vf, wf, ef, gef, ges,
-			   &NumberOfColours, colslice, colls, colrs, colf);
+			   &NumberOfColours, colslice, colls, colrs, colf,
+			   &ColdGasSubgridModel, cdslice);
 
     if (ColdGasSubgridModel)
           FORTRAN_NAME(flux_hll)(cdslice, cpres, cpres, cuslice, cvslice, cwslice,
-                           CellWidthTemp[0], diffcoef,
-                           &GridDimension[0], &GridDimension[1],
-                           &is, &ie, &js, &je, &dtFixed, &Gamma,
-                           &PPMDiffusionParameter, &zero,
-                           &DualEnergyFormalismEta1,
-                           &RiemannSolverFallback,
-                           cdls, cdrs, dummy, dummy, culs, curs,
-                           cvls, cvrs, cwls, cwrs, dummy, dummy,
-                           cdf, cuf, cvf, cwf, dummy, dummy, dummy,
-                           &zero, colslice, dummy, dummy, dummy);
+				 CellWidthTemp[0], diffcoef,
+				 &GridDimension[0], &GridDimension[1],
+				 &is, &ie, &js, &je, &dtFixed, &Gamma,
+				 &PPMDiffusionParameter, &zero,
+				 &DualEnergyFormalismEta1,
+				 &RiemannSolverFallback,
+				 cdls, cdrs, dummy, dummy, culs, curs,
+				 cvls, cvrs, cwls, cwrs, dummy, dummy,
+				 cdf, cuf, cvf, cwf, dummy, dummy, dummy,
+				 &zero, colslice, dummy, dummy, dummy,
+				 &ColdGasSubgridModel, cdslice);
 
     
     break;

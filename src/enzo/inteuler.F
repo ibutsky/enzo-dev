@@ -10,7 +10,7 @@ c
      &            dt, gamma, ipresfree,
      &            dls, drs, pls, prs, gels, gers,
      &            uls, urs, vls, vrs, wls, wrs,
-     &            ncolor, colslice, colls, colrs
+     &            ncolor, colslice, colls, colrs, icold, cdslice
      &                    )
 c
 c  COMPUTES LEFT AND RIGHT EULERIAN INTERFACE VALUES FOR RIEMANN SOLVER
@@ -78,11 +78,11 @@ c
 c  argument declarations
 c
       INTG_PREC gravity, i1, i2, idim, idual, iflatten, ipresfree, 
-     &        isteep, j1, j2, jdim, ncolor, iconsrec, iposrec
+     &        isteep, j1, j2, jdim, ncolor, iconsrec, iposrec, icold
       R_PREC  dt, eta1, eta2, gamma
       R_PREC  dslice(idim,jdim),     dxi(idim     ),  pslice(idim,jdim),
      &        uslice(idim,jdim),  vslice(idim,jdim),  wslice(idim,jdim),
-     &        grslice(idim,jdim), geslice(idim,jdim)
+     &        grslice(idim,jdim), geslice(idim,jdim), cdslice(idim,jdim)
       R_PREC  dls(idim,jdim),     drs(idim,jdim), flatten(idim,jdim),
      &        pls(idim,jdim),
      &        prs(idim,jdim),    gels(idim,jdim),    gers(idim,jdim),
@@ -196,6 +196,7 @@ c     Precompute left and right characteristic distances
 c
       do i=1,idim
          cs(i) = sqrt(gamma*pslice(i,j)/dslice(i,j))
+         if (icold .ge. 0) cs(i)=cs(i)/sqrt(1+cdslice(i,j)/dslice(i,j))
          if (ipresfree .eq. 1) cs(i) = tiny
          char1(i) = max(0._RKIND, dt*(uslice(i,j)+cs(i)))*dx2i(i)
          char2(i) = max(0._RKIND,-dt*(uslice(i,j)-cs(i)))*dx2i(i)
