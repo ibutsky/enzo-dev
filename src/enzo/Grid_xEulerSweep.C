@@ -291,8 +291,7 @@ int grid::xEulerSweep(int k, int NumberOfSubgrids, fluxes *SubgridFluxes[],
 				dls, drs, pls, prs, gels, gers, uls, urs,
 				vls, vrs, wls, wrs, pbar, ubar,
 				df, ef, uf, vf, wf, gef, ges,
-				&NumberOfColours, colslice, colls, colrs, colf,
-				&ColdGasSubgridModel, cdslice);
+				&NumberOfColours, colslice, colls, colrs, colf);
 
     if (ColdGasSubgridModel){
       FORTRAN_NAME(twoshock)(cdls, cdrs, dummy, dummy, culs, curs,
@@ -312,9 +311,7 @@ int grid::xEulerSweep(int k, int NumberOfSubgrids, fluxes *SubgridFluxes[],
 				  cdls, cdrs, dummy, dummy, dummy, dummy, culs, curs,
 				  cvls, cvrs, cwls, cwrs, pbar, ubar,
 				  cdf, dummy, cuf, cvf, cwf, dummy, dummy,
-				  &NumberOfColours, colslice, colls, colrs, colf,
-				  &ColdGasSubgridModel, cdslice);
-
+				  &NumberOfColours, colslice, colls, colrs, colf);
 
     }
     break;
@@ -361,6 +358,20 @@ int grid::xEulerSweep(int k, int NumberOfSubgrids, fluxes *SubgridFluxes[],
 			    vls, vrs, wls, wrs, gels, gers,
 			    df, uf, vf, wf, ef, gef, ges,
 			    &NumberOfColours, colslice, colls, colrs, colf);
+
+    if(ColdGasSubgridModel){
+      FORTRAN_NAME(flux_hllc)(cdslice, dummy, dummy, cuslice, cvslice, cwslice,
+			      CellWidthTemp[0], diffcoef,
+			      &GridDimension[0], &GridDimension[1],
+			      &is, &ie, &js, &je, &dtFixed, &Gamma,
+			      &PPMDiffusionParameter, &zero,
+			      &DualEnergyFormalismEta1,
+			      &RiemannSolverFallback,
+			      cdls, cdrs, dummy, dummy, culs, curs,
+			      cvls, cvrs, cwls, cwrs, dummy, dummy,
+			      cdf, cuf, cvf, cwf, dummy, dummy, dummy,
+			      &NumberOfColours, colslice, colls, colrs, colf);
+    }
     break;
 
   default:
