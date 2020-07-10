@@ -291,7 +291,31 @@ int grid::zEulerSweep(int j, int NumberOfSubgrids, fluxes *SubgridFluxes[],
 				dls, drs, pls, prs, gels, gers, uls, urs,
 				vls, vrs, wls, wrs, pbar, ubar,
 				df, ef, uf, vf, wf, gef, ges,
-				&NumberOfColours, colslice, colls, colrs, colf);
+				&NumberOfColours, colslice, colls, colrs, colf,
+				&ColdGasSubgridModel, cdslice);
+    if (ColdGasSubgridModel){
+      FORTRAN_NAME(twoshock)(cdls, cdrs, dummy, dummy, culs, curs,
+                             &GridDimension[0], &GridDimension[1],
+                             &is, &ie_p1, &js, &je,
+                             &dtFixed, &Gamma, &MinimumPressure, &one,
+                             pbar, ubar, &GravityOn, grslice,
+                             &zero, &DualEnergyFormalismEta1);
+
+      FORTRAN_NAME(flux_twoshock)(cdslice, cpres, cpres, cuslice, cvslice, cwslice,
+                                  CellWidthTemp[0], diffcoef,
+                                  &GridDimension[0], &GridDimension[1],
+                                  &is, &ie, &js, &je, &dtFixed, &Gamma,
+                                  &PPMDiffusionParameter, &zero,
+                                  &DualEnergyFormalismEta1,
+                                  &RiemannSolverFallback,
+                                  cdls, cdrs, dummy, dummy, dummy, dummy, culs, curs,
+                                  cvls, cvrs, cwls, cwrs, pbar, ubar,
+                                  cdf, dummy, cuf, cvf, cwf, dummy, dummy,
+                                  &NumberOfColours, colslice, colls, colrs, colf,
+                                  &ColdGasSubgridModel, cdslice);
+
+
+    }
     break;
 
   case HLL:

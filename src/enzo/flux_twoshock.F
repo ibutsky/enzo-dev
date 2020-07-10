@@ -10,7 +10,7 @@ c
      $     dls, drs, pls, prs, gels, gers, 
      $     uls, urs, vls, vrs, wls, wrs, pbar, ubar,
      $     df, ef, uf, vf, wf, gef, ges,
-     $     ncolor, colslice, colls, colrs, colf
+     $     ncolor, colslice, colls, colrs, colf, icold, cdslice
      $     )
 c
 c-----------------------------------------------------------------------
@@ -38,7 +38,7 @@ c-----------------------------------------------------------------------
 c     Arguments
 c
       INTG_PREC i1, i2, j1, j2, idim, jdim, ncolor, idiff, idual,
-     $     ifallback
+     $     ifallback, icold
       R_PREC gamma, dt, eta1
       R_PREC ubar(idim,jdim), pbar(idim,jdim), dx(idim),
      $     uls(idim,jdim), vls(idim,jdim), wls(idim,jdim),
@@ -48,7 +48,7 @@ c
      $     colls(idim,jdim,ncolor), colrs(idim,jdim,ncolor),
      $     diffcoef(idim,jdim), dslice(idim,jdim), 
      $     uslice(idim,jdim), vslice(idim,jdim), wslice(idim,jdim),
-     $     eslice(idim,jdim), geslice(idim,jdim),
+     $     eslice(idim,jdim), geslice(idim,jdim), cdslice(idim,jdim),
      $     colslice(idim,jdim,ncolor)
       R_PREC df(idim,jdim), ef(idim,jdim), gef(idim,jdim),
      $     uf(idim,jdim), vf(idim,jdim), wf(idim,jdim),
@@ -450,7 +450,7 @@ c     &        write (6,*) grslice(i-1,j), grslice(i,j), grslice(i+1,j)
      $               idiff, idual, eta1, ifallback,
      $               dls, drs, pls, prs, uls, urs, vls, vrs, wls, wrs,
      $               gels, gers, df, uf, vf, wf, ef, gef, ges, 
-     $               ncolor, colslice, colls, colrs, colf)
+     $               ncolor, colslice, colls, colrs, colf,icold,cdslice)
              endif
           endif
        enddo
