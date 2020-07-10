@@ -61,14 +61,11 @@ int grid::ColdShockTubesInitializeGrid(   float x0,
   
   /* transform pressure to total energy */
 
-  float etotl, etotr, v2, cel, cer;
-
-  /* TODO: calculate cel and cer */
+  float etotl, etotr, v2;
   v2 = vxl * vxl + vyl * vyl + vzl * vzl;
-  etotl = pl / ((Gamma-1.0)*rhol) + 0.5*v2 + cel;
-
+  etotl = pl / ((Gamma-1.0)*rhol) + 0.5*v2;
   v2 = vxr * vxr + vyr * vyr + vzr * vzr;
-  etotr = pr / ((Gamma-1.0)*rhor) + 0.5*v2 + cer;
+  etotr = pr / ((Gamma-1.0)*rhor) + 0.5*v2;
 
   FLOAT x;
   int i;
@@ -88,7 +85,7 @@ int grid::ColdShockTubesInitializeGrid(   float x0,
       BaryonField[iCV3][i] = 0;
 
       if (DualEnergyFormalism) {
-	BaryonField[ieint][i] = etotl - 0.5*(vxl*vxl+vyl*vyl+vzl*vzl) - cel;
+	BaryonField[ieint][i] = etotl - 0.5*(vxl*vxl+vyl*vyl+vzl*vzl);
       }
     } else {
       BaryonField[iden ][i] = rhor;
@@ -101,7 +98,7 @@ int grid::ColdShockTubesInitializeGrid(   float x0,
       BaryonField[iCV2][i] = 0;
       BaryonField[iCV3][i] = 0;
       if (DualEnergyFormalism) {
-	BaryonField[ieint][i] = etotr - 0.5*(vxr*vxr+vyr*vyr+vzr*vzr) - cer;
+	BaryonField[ieint][i] = etotr - 0.5*(vxr*vxr+vyr*vyr+vzr*vzr);
       }
     }
   }
@@ -153,16 +150,16 @@ int grid::ColdShockTubesInitializeGrid(   float x0,   float x1,
 
   /* transform pressure to total energy */
 
-  float etotl, etotr, etotc, v2, cel, cer, cec;
-  /* TODO Calculate cel and cer, ce */
+  float etotl, etotr, etotc, v2;
   v2 = vxl * vxl + vyl * vyl + vzl * vzl;
-  etotl = pl / ((Gamma-1.0)*rhol) + 0.5*v2 + cel;
+  etotl = pl / ((Gamma-1.0)*rhol) + 0.5*v2;
+  printf("eintl = %e", pl / ((Gamma-1.0)*rhol));
 
   v2 = vxr * vxr + vyr * vyr + vzr * vzr;
-  etotr = pr / ((Gamma-1.0)*rhor) + 0.5*v2 + cer;
+  etotr = pr / ((Gamma-1.0)*rhor) + 0.5*v2;
 
   v2 = vxc * vxc + vyc * vyc + vzc * vzc;
-  etotc = pc / ((Gamma-1.0)*rhoc) + 0.5*v2 + cec;
+  etotc = pc / ((Gamma-1.0)*rhoc) + 0.5*v2;
 
   FLOAT x;
   int i;
@@ -181,7 +178,7 @@ int grid::ColdShockTubesInitializeGrid(   float x0,   float x1,
       BaryonField[iCV2][i] = 0;
       BaryonField[iCV3][i] = 0;
       if (DualEnergyFormalism) {
-	BaryonField[ieint][i] = etotl - 0.5*(vxl*vxl+vyl*vyl+vzl*vzl) - cel;
+	BaryonField[ieint][i] = etotl - 0.5*(vxl*vxl+vyl*vyl+vzl*vzl);
       }
     } else if (x <= x1) {
       BaryonField[iden ][i] = rhoc;
@@ -194,7 +191,7 @@ int grid::ColdShockTubesInitializeGrid(   float x0,   float x1,
       BaryonField[iCV2][i] = 0;
       BaryonField[iCV3][i] = 0;
       if (DualEnergyFormalism) {
-	BaryonField[ieint][i] = etotc - 0.5*(vxc*vxc+vyc*vyc+vzc*vzc) - cec;
+	BaryonField[ieint][i] = etotc - 0.5*(vxc*vxc+vyc*vyc+vzc*vzc);
       }
     }
     else {
@@ -208,7 +205,7 @@ int grid::ColdShockTubesInitializeGrid(   float x0,   float x1,
       BaryonField[iCV2][i] = 0;
       BaryonField[iCV3][i] = 0;
       if (DualEnergyFormalism) {
-	BaryonField[ieint][i] = etotr - 0.5*(vxr*vxr+vyr*vyr+vzr*vzr) - cer;
+	BaryonField[ieint][i] = etotr - 0.5*(vxr*vxr+vyr*vyr+vzr*vzr);
       }
     }
   }

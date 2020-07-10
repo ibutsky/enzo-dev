@@ -43,7 +43,7 @@ int grid::ComputeColdGasSourceTerms(){
 
   // Some locals
   int size = 1, idx, i,j,k;
-  float drag_coef, dvx, dvy, dvz; 
+  float drag_coef, dvx, dvy, dvz, v2; 
 
   for (int dim = 0; dim < GridRank; dim++) 
     size *= GridDimension[dim];
@@ -68,7 +68,10 @@ int grid::ComputeColdGasSourceTerms(){
   }
 
   float drag_units = MassUnits / LengthUnits / LengthUnits / TimeUnits / TimeUnits;
-  drag_coef = CGSMDragCoefficient / drag_units; 
+  drag_coef = CGSMDragCoefficient / drag_units;
+
+  if (drag_coef == 0)
+    return SUCCESS;
  
   for (k = GridStartIndex[2]; k <= GridEndIndex[2]; k++)
     for (j = GridStartIndex[1]; j <= GridEndIndex[1]; j++)
@@ -76,15 +79,15 @@ int grid::ComputeColdGasSourceTerms(){
 	idx = ELT(i,j,k);
 
 	// subtract out old kinetic energy from total energy
-	//	BaryonField[TENum][idx] -= 0.5 * (BaryonField[Vel1Num][idx]*BaryonField[Vel1Num][idx] + 
-	//					  ((GridRank > 1) ? BaryonField[Vel2Num][idx]*BaryonField[Vel2Num][idx] : 0) +
-	//					  ((GridRank > 2) ? BaryonField[Vel3Num][idx]*BaryonField[Vel3Num][idx] : 0));
+	v2 = BaryonField[Vel1Num][idx] * BaryonField[Vel1Num][idx];
+	if (GridRank > 1) v2 += BaryonField[Vel2Num][idx]*BaryonField[Vel2Num][idx];
+	if (GridRank > 2) v2 += BaryonField[Vel3Num][idx]*BaryonField[Vel3Num][idx];
+	BaryonField[TENum][idx] -= 0.5 * v2;
 
 	if (BaryonField[CDensNum][idx] > 0) {
 	  dvx = BaryonField[Vel1Num][idx] - BaryonField[CVel1Num][idx];
 	  BaryonField[Vel1Num][idx] -= dtFixed * drag_coef * dvx / BaryonField[DensNum][idx];
 	  BaryonField[CVel1Num][idx] += dtFixed * drag_coef * dvx / BaryonField[CDensNum][idx];
-
 	  if (GridRank > 1){
 	    dvy = BaryonField[Vel2Num][idx] - BaryonField[CVel2Num][idx];
 	    BaryonField[Vel2Num][idx] -= dtFixed * drag_coef * dvy / BaryonField[DensNum][idx];
@@ -97,9 +100,10 @@ int grid::ComputeColdGasSourceTerms(){
 	  }
 	}  
 	// add back the updated kinetic energy
-	//        BaryonField[TENum][idx] += 0.5 * (BaryonField[Vel1Num][idx]*BaryonField[Vel1Num][idx] +
-	//                          (GridRank > 1) ? BaryonField[Vel2Num][idx]*BaryonField[Vel2Num][idx] : 0 +
-	//                          (GridRank > 2) ? BaryonField[Vel3Num][idx]*BaryonField[Vel3Num][idx] : 0);
+        v2 = BaryonField[Vel1Num][idx] * BaryonField[Vel1Num][idx];
+        if (GridRank > 1) v2 +=	BaryonField[Vel2Num][idx]*BaryonField[Vel2Num][idx];
+        if (GridRank > 2) v2 += BaryonField[Vel3Num][idx]*BaryonField[Vel3Num][idx];
+        BaryonField[TENum][idx] += 0.5 * v2;
 
   } // end triple for
 
