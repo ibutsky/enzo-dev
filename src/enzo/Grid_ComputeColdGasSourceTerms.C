@@ -27,10 +27,6 @@
 #include "phys_constants.h"
 #include "CosmologyParameters.h"
 
-int GetUnits(float *DensityUnits, float *LengthUnits,
-            float *TemperatureUnits, float *TimeUnits,
-            float *VelocityUnits, double *MassUnits, FLOAT Time);
-
 
 int grid::ComputeColdGasSourceTerms(){
 
@@ -43,11 +39,13 @@ int grid::ComputeColdGasSourceTerms(){
 
   // Some locals
   int size = 1, idx, i,j,k;
-  float drag_coef, dvx, dvy, dvz, v2; 
+  float dvx, dvy, dvz, v2; 
 
   for (int dim = 0; dim < GridRank; dim++) 
     size *= GridDimension[dim];
 
+  float *drag_coef = new float[size];
+  
   int DensNum, GENum, Vel1Num, Vel2Num, Vel3Num, TENum,
       CDensNum, CVel1Num, CVel2Num, CVel3Num;
 
@@ -56,57 +54,53 @@ int grid::ComputeColdGasSourceTerms(){
                                    Vel3Num, TENum);
   this->IdentifyColdGasPhysicalQuantities(CDensNum, CVel1Num, CVel2Num, CVel3Num);
 
- // Some locals
-  float TemperatureUnits = 1.0, DensityUnits = 1.0, LengthUnits = 1.0;
-  float VelocityUnits = 1.0, TimeUnits = 1.0;
-  double MassUnits = 1.0;
-
-  // Get system of units
-  if (GetUnits(&DensityUnits, &LengthUnits, &TemperatureUnits,
-               &TimeUnits, &VelocityUnits, &MassUnits, Time) == FAIL) {
-    ENZO_FAIL("Error in GetUnits.");
-  }
-
-  float drag_units = MassUnits / LengthUnits / LengthUnits / TimeUnits / TimeUnits;
-  drag_coef = CGSMDragCoefficient / drag_units;
-
-  if (drag_coef == 0)
-    return SUCCESS;
- 
   for (k = GridStartIndex[2]; k <= GridEndIndex[2]; k++)
     for (j = GridStartIndex[1]; j <= GridEndIndex[1]; j++)
       for (i = GridStartIndex[0]; i <= GridEndIndex[0]; i++) {
 	idx = ELT(i,j,k);
 
-	// subtract out old kinetic energy from total energy
-	v2 = BaryonField[Vel1Num][idx] * BaryonField[Vel1Num][idx];
-	if (GridRank > 1) v2 += BaryonField[Vel2Num][idx]*BaryonField[Vel2Num][idx];
-	if (GridRank > 2) v2 += BaryonField[Vel3Num][idx]*BaryonField[Vel3Num][idx];
-	BaryonField[TENum][idx] -= 0.5 * v2;
+	// First we update momentum change through cold gas drag
 
-	if (BaryonField[CDensNum][idx] > 0) {
-	  dvx = BaryonField[Vel1Num][idx] - BaryonField[CVel1Num][idx];
-	  BaryonField[Vel1Num][idx] -= dtFixed * drag_coef * dvx / BaryonField[DensNum][idx];
-	  BaryonField[CVel1Num][idx] += dtFixed * drag_coef * dvx / BaryonField[CDensNum][idx];
-	  if (GridRank > 1){
-	    dvy = BaryonField[Vel2Num][idx] - BaryonField[CVel2Num][idx];
-	    BaryonField[Vel2Num][idx] -= dtFixed * drag_coef * dvy / BaryonField[DensNum][idx];
-	    BaryonField[CVel2Num][idx] += dtFixed * drag_coef * dvy / BaryonField[CDensNum][idx];
+	if (CGSMDragModel > 0) {
+	  // calculate cold gas drag coefficient
+	  if (this->CalculateColdGasDragCoefficient(drag_coef) == FAIL){
+		ENZO_FAIL("Error in CalculateColdGasDragCoefficient\n");
 	  }
-	  if (GridRank > 2){
-	    dvz = BaryonField[Vel3Num][idx] - BaryonField[CVel3Num][idx];
-	    BaryonField[Vel3Num][idx] -= dtFixed * drag_coef * dvz / BaryonField[DensNum][idx];
-	    BaryonField[CVel3Num][idx] += dtFixed * drag_coef * dvz / BaryonField[CDensNum][idx];
-	  }
-	}  
-	// add back the updated kinetic energy
-        v2 = BaryonField[Vel1Num][idx] * BaryonField[Vel1Num][idx];
-        if (GridRank > 1) v2 +=	BaryonField[Vel2Num][idx]*BaryonField[Vel2Num][idx];
-        if (GridRank > 2) v2 += BaryonField[Vel3Num][idx]*BaryonField[Vel3Num][idx];
-        BaryonField[TENum][idx] += 0.5 * v2;
+	  
+	  // subtract out old kinetic energy from total energy
+	  v2 = BaryonField[Vel1Num][idx] * BaryonField[Vel1Num][idx];
+	  if (GridRank > 1) v2 += BaryonField[Vel2Num][idx]*BaryonField[Vel2Num][idx];
+	  if (GridRank > 2) v2 += BaryonField[Vel3Num][idx]*BaryonField[Vel3Num][idx];
+	  BaryonField[TENum][idx] -= 0.5 * v2;
+
+	  if (BaryonField[CDensNum][idx] > 0) {
+	    dvx = BaryonField[Vel1Num][idx] - BaryonField[CVel1Num][idx];
+	    BaryonField[Vel1Num][idx]  -= dtFixed * drag_coef[idx] * dvx / BaryonField[DensNum][idx];
+	    BaryonField[CVel1Num][idx] += dtFixed * drag_coef[idx] * dvx / BaryonField[CDensNum][idx];
+	    if (GridRank > 1){
+	      dvy = BaryonField[Vel2Num][idx] - BaryonField[CVel2Num][idx];
+	      BaryonField[Vel2Num][idx]  -= dtFixed * drag_coef[idx] * dvy / BaryonField[DensNum][idx];
+	      BaryonField[CVel2Num][idx] += dtFixed * drag_coef[idx] * dvy / BaryonField[CDensNum][idx];
+	    }
+	    if (GridRank > 2){
+	      dvz = BaryonField[Vel3Num][idx] - BaryonField[CVel3Num][idx];
+	      BaryonField[Vel3Num][idx]  -= dtFixed * drag_coef[idx] * dvz / BaryonField[DensNum][idx];
+	      BaryonField[CVel3Num][idx] += dtFixed * drag_coef[idx] * dvz / BaryonField[CDensNum][idx];
+	    }
+	  }  
+	  // add back the updated kinetic energy
+	  v2 = BaryonField[Vel1Num][idx] * BaryonField[Vel1Num][idx];
+	  if (GridRank > 1) v2 +=	BaryonField[Vel2Num][idx]*BaryonField[Vel2Num][idx];
+	  if (GridRank > 2) v2 += BaryonField[Vel3Num][idx]*BaryonField[Vel3Num][idx];
+	  BaryonField[TENum][idx] += 0.5 * v2;
+	}
+
+	// Next: cold gas formation source terms
+	// next: cold gas destruction source terms
 
   } // end triple for
 
+  delete [] drag_coef;
   return SUCCESS;  
 }
 

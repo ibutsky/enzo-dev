@@ -835,6 +835,7 @@ int SetDefaultGlobalValues(TopGridData &MetaData)
   /* End of Stanford Hydro additions */
 
   ColdGasSubgridModel = 0;
+  CGSMDragModel       = 0; // off
   CGSMCharacteristicTemperature = 1e4;
   CGSMMaximumCoolingTemperature = 1e5;
   CGSMDragCoefficient = 0;

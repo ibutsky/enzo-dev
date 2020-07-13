@@ -421,6 +421,12 @@ EXTERN int MultiMetals;
 
 /* Cold gas subgrid model (on or off ). */
 EXTERN int ColdGasSubgridModel;
+/* Cold gas drag model 
+ * 0:  Off - default
+ * 1:  Constant drag coefficient set by CGSMDragCoefficient
+ * 2:  Drag coefficient is a function of cold cloud cross section
+ */
+EXTERN int CGSMDragModel;                    
 EXTERN float CGSMCharacteristicTemperature;  // the temperature of all unresolved cold cloudlets
 EXTERN float CGSMMaximumCoolingTemperature;  // Temperature used to calculate minimum cooling time. Should be ~ peak of cooling curve
 EXTERN float CGSMDragCoefficient;

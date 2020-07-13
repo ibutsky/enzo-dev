@@ -488,11 +488,11 @@ float grid::ComputeTimeStep()
   }
 
   /* Cold Gas Subgrid Model Time Stepping */
-  if((ColdGasSubgridModel > 0) & (CGSMDragCoefficient > 0)){
+  if((ColdGasSubgridModel > 0) & (CGSMDragModel > 0)){
 
     float rho, rho_c;
-    float drag_units = DensityUnits * aUnits;
-    float drag_coef = CGSMDragCoefficient / drag_units;
+    float *drag_coef = new float[size];
+    
     int DensNum, GENum, Vel1Num, Vel2Num, Vel3Num, TENum,
       CDensNum, CVel1Num, CVel2Num, CVel3Num;
 
@@ -500,15 +500,20 @@ float grid::ComputeTimeStep()
                                    Vel3Num, TENum);
     this->IdentifyColdGasPhysicalQuantities(CDensNum, CVel1Num, CVel2Num, CVel3Num);
 
+    if (this->CalculateColdGasDragCoefficient(drag_coef) == FAIL){
+      ENZO_FAIL("Error in CalculateColdGasDragCoefficient\n");
+    }
 
     for (int index = 0; index < size; index++){
 	  rho = BaryonField[DensNum][index];
 	  rho_c = BaryonField[DensNum][index];
-          dtColdSubgrid = min(dtColdSubgrid, rho * rho_c / (drag_coef*(rho + rho_c)));
+	  if (drag_coef[index] > 0)
+	    dtColdSubgrid = min(dtColdSubgrid, rho * rho_c / (drag_coef[index]*(rho + rho_c)));
     }
 
     dtColdSubgrid *= CourantSafetyNumber;
 
+    delete [] drag_coef;
   }
 
   /* 8) calculate minimum timestep */

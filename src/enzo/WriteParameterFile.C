@@ -513,6 +513,7 @@ int WriteParameterFile(FILE *fptr, TopGridData &MetaData, char *name = NULL)
   WriteListOfFloats(fptr, MetaData.TopGridRank, GalaxySimulationPreWindVelocity);
 
   fprintf(fptr, "ColdGasSubgridModel           =%"ISYM"\n",  ColdGasSubgridModel);
+  fprintf(fptr, "CGSMDragModel                 =%"ISYM"\n",  CGSMDragModel);
   fprintf(fptr, "CGSMCharacteristicTemperature =%"FSYM"\n",  CGSMCharacteristicTemperature);
   fprintf(fptr, "CGSMMaximumCoolingTemperature =%"FSYM"\n",  CGSMMaximumCoolingTemperature);
   fprintf(fptr, "CGSMDragCoefficient           =%"FSYM"\n",  CGSMDragCoefficient);
