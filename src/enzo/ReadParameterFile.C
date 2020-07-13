@@ -555,6 +555,7 @@ int ReadParameterFile(FILE *fptr, TopGridData &MetaData, float *Initialdt)
 
     ret += sscanf(line, "ColdGasSubgridModel           = %"ISYM, &ColdGasSubgridModel);
     ret += sscanf(line, "CGSMCharacteristicTemperature = %"FSYM, &CGSMCharacteristicTemperature);
+    ret += sscanf(line, "CGSMMaximumCoolingTemperature = %"FSYM, &CGSMMaximumCoolingTemperature);
     ret += sscanf(line, "CGSMDragCoefficient           = %"FSYM, &CGSMDragCoefficient);
 
     ret += sscanf(line, "DualEnergyFormalism     = %"ISYM, &DualEnergyFormalism);

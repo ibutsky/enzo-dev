@@ -451,6 +451,7 @@ public:
    int ComputeCRDiffusionTimeStep(float &dt);
 
 /* Member functions for dealing with Cold Gas Subgrid Model */
+  int CalculateColdCloudDensityAndRadius(float *cold_cloud_density, float *cold_cloud_radius);
   int ComputeColdGasSourceTerms(); 
 
 /* Baryons: Copy current solution to Old solution (returns success/fail)

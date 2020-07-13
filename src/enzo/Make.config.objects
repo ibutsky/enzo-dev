@@ -363,6 +363,7 @@ OBJS_CONFIG_LIB = \
 	Grid_ApplyTimeAction.o \
     	Grid_AveragedVelocityAtCell.o \
 	Grid_CalculateAngularMomentum.o \
+	Grid_CalculateColdCloudDensityAndRadius.o \
 	Grid_CalculateJeansMass.o \
 	Grid_CalculateSmartStarAccretionRate.o \
 	Grid_CalculateSpecificQuantities.o \
@@ -411,6 +412,7 @@ OBJS_CONFIG_LIB = \
 	Grid_ComputeColdGasSourceTerms.o \
 	Grid_ComputeConductionTimeStep.o \
 	Grid_ComputeCoolingTime.o \
+	Grid_ComputeCoolingTimeAtSpecifiedTemperature.o \
         Grid_ComputeCRDiffusion.o \
         Grid_ComputeCRDiffusionTimeStep.o \
         Grid_ComputeDomainBoundaryMassFlux.o \

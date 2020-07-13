@@ -421,7 +421,8 @@ EXTERN int MultiMetals;
 
 /* Cold gas subgrid model (on or off ). */
 EXTERN int ColdGasSubgridModel;
-EXTERN float CGSMCharacteristicTemperature; 
+EXTERN float CGSMCharacteristicTemperature;  // the temperature of all unresolved cold cloudlets
+EXTERN float CGSMMaximumCoolingTemperature;  // Temperature used to calculate minimum cooling time. Should be ~ peak of cooling curve
 EXTERN float CGSMDragCoefficient;
 
 /* Cosmic Ray Model

@@ -836,6 +836,7 @@ int SetDefaultGlobalValues(TopGridData &MetaData)
 
   ColdGasSubgridModel = 0;
   CGSMCharacteristicTemperature = 1e4;
+  CGSMMaximumCoolingTemperature = 1e5;
   CGSMDragCoefficient = 0;
 
   /* test problem values */
