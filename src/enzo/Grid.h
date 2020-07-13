@@ -619,6 +619,11 @@ gradient force to gravitational force for one-zone collapse test. */
 
    int ComputeCoolingTime(float *cooling_time, int CoolingTimeOnly=FALSE);
 
+/* Baryons: compute the cooling time. */
+
+  int ComputeCoolingTimeAtSpecifiedTemperature(float *cooling_time,
+		     float CoolingTemperature, int CoolingTimeOnly=FALSE);
+  
 /* Baryons & DualEnergyFormalism: Restore consistency between total and
                                   internal energy fields. */
 
