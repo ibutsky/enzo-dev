@@ -514,6 +514,8 @@ int WriteParameterFile(FILE *fptr, TopGridData &MetaData, char *name = NULL)
 
   fprintf(fptr, "ColdGasSubgridModel           =%"ISYM"\n",  ColdGasSubgridModel);
   fprintf(fptr, "CGSMDragModel                 =%"ISYM"\n",  CGSMDragModel);
+  fprintf(fptr, "CGSMThermalInstability        =%"ISYM"\n",  CGSMThermalInstability);
+  fprintf(fptr, "CGSMCloudCrushing             =%"ISYM"\n",  CGSMCloudCrushing);
   fprintf(fptr, "CGSMCharacteristicTemperature =%"FSYM"\n",  CGSMCharacteristicTemperature);
   fprintf(fptr, "CGSMMaximumCoolingTemperature =%"FSYM"\n",  CGSMMaximumCoolingTemperature);
   fprintf(fptr, "CGSMDragCoefficient           =%"FSYM"\n",  CGSMDragCoefficient);

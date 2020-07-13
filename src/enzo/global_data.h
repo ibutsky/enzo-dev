@@ -426,10 +426,14 @@ EXTERN int ColdGasSubgridModel;
  * 1:  Constant drag coefficient set by CGSMDragCoefficient
  * 2:  Drag coefficient is a function of cold cloud cross section
  */
-EXTERN int CGSMDragModel;                    
+EXTERN int CGSMDragModel;
+EXTERN float CGSMDragCoefficient;
+
+EXTERN int CGSMThermalInstability;           // 0 - off; 1 - on. Models cold gas formation source terms
+EXTERN int CGSMCloudCrushing;                // 0 - off; 1 - on. Models cold gas destruction source terms
+
 EXTERN float CGSMCharacteristicTemperature;  // the temperature of all unresolved cold cloudlets
 EXTERN float CGSMMaximumCoolingTemperature;  // Temperature used to calculate minimum cooling time. Should be ~ peak of cooling curve
-EXTERN float CGSMDragCoefficient;
 
 /* Cosmic Ray Model
  * 0: Off - default

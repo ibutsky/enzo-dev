@@ -45,6 +45,8 @@ int grid::ComputeColdGasSourceTerms(){
     size *= GridDimension[dim];
 
   float *drag_coef = new float[size];
+  float *peak_cooling_time = new float[size];
+
   
   int DensNum, GENum, Vel1Num, Vel2Num, Vel3Num, TENum,
       CDensNum, CVel1Num, CVel2Num, CVel3Num;
@@ -54,13 +56,18 @@ int grid::ComputeColdGasSourceTerms(){
                                    Vel3Num, TENum);
   this->IdentifyColdGasPhysicalQuantities(CDensNum, CVel1Num, CVel2Num, CVel3Num);
 
+
+  // calculate cooling time at peak of cooling curve
+  if (this->ComputeCoolingTimeAtSpecifiedTemperature(peak_cooling_time, CGSMMaximumCoolingTemperature, TRUE) == FAIL) {
+     ENZO_FAIL("Error in grid->ComputeCoolingTimeAtSpecifiedTemperature.\n");
+  }
+
   for (k = GridStartIndex[2]; k <= GridEndIndex[2]; k++)
     for (j = GridStartIndex[1]; j <= GridEndIndex[1]; j++)
       for (i = GridStartIndex[0]; i <= GridEndIndex[0]; i++) {
 	idx = ELT(i,j,k);
 
 	// First we update momentum change through cold gas drag
-
 	if (CGSMDragModel > 0) {
 	  // calculate cold gas drag coefficient
 	  if (this->CalculateColdGasDragCoefficient(drag_coef) == FAIL){
@@ -90,17 +97,28 @@ int grid::ComputeColdGasSourceTerms(){
 	  }  
 	  // add back the updated kinetic energy
 	  v2 = BaryonField[Vel1Num][idx] * BaryonField[Vel1Num][idx];
-	  if (GridRank > 1) v2 +=	BaryonField[Vel2Num][idx]*BaryonField[Vel2Num][idx];
+	  if (GridRank > 1) v2 += BaryonField[Vel2Num][idx]*BaryonField[Vel2Num][idx];
 	  if (GridRank > 2) v2 += BaryonField[Vel3Num][idx]*BaryonField[Vel3Num][idx];
 	  BaryonField[TENum][idx] += 0.5 * v2;
 	}
 
-	// Next: cold gas formation source terms
-	// next: cold gas destruction source terms
+	// cold gas formation source terms
+	if (CGSMThermalInstability > 0){
+	  
+	  // TODO
 
+	  
+	}
+	// next: cold gas destruction source terms
+	if (CGSMCloudCrushing > 0){
+	  
+	  // TODO
+	}
   } // end triple for
 
   delete [] drag_coef;
+  delete [] peak_cooling_time;
+
   return SUCCESS;  
 }
 
