@@ -139,11 +139,11 @@ int grid::ComputeCoolingTimeAtSpecifiedTemperature(float *cooling_time, float Co
 
   /* Get easy to handle pointers for each variable. */
  
-  float *density     = BaryonField[DensNum];
   float *velocity1   = BaryonField[Vel1Num];
   float *velocity2   = BaryonField[Vel2Num];
   float *velocity3   = BaryonField[Vel3Num];
 
+  float *density     = new float[size];
   float *totalenergy = new float[size];
   float *gasenergy   = new float[size];
   
@@ -164,6 +164,8 @@ int grid::ComputeCoolingTimeAtSpecifiedTemperature(float *cooling_time, float Co
   float vx, vy, vz, v2;
   for(int n = 0; n < size; n++){
     gasenergy[n] = (CoolingTemperature/TemperatureUnits)/(Mu*(Gamma - 1.0));
+    // assuming gas in pressure equilibrium, the density increase/decrease should be proportional to temperature
+    density[n] = BaryonField[DensNum][n] * (BaryonField[GENum][n] / gasenergy[n]); 
     v2 = velocity1[n]*velocity1[n];
     if(GridRank > 1) v2 += velocity2[n]*velocity2[n];
     if(GridRank > 2) v2 += velocity3[n]*velocity3[n];
@@ -270,7 +272,7 @@ int grid::ComputeCoolingTimeAtSpecifiedTemperature(float *cooling_time, float Co
           thermal_energy[i] -= 0.5 * (POW(BaryonField[iBx][i], 2.0) + 
                                       POW(BaryonField[iBy][i], 2.0) + 
                                       POW(BaryonField[iBz][i], 2.0)) / 
-            BaryonField[DensNum][i];
+            density[i];
         }
       } // for (int i = 0; i < size; i++)
     }
@@ -539,6 +541,7 @@ int grid::ComputeCoolingTimeAtSpecifiedTemperature(float *cooling_time, float Co
   delete [] TotalMetals;
   delete [] totalenergy;
   delete [] gasenergy;
+  delete [] density;
   
   return SUCCESS;
 }
