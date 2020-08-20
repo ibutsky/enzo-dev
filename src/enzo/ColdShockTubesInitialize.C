@@ -55,8 +55,10 @@ int ColdShockTubesInitialize(FILE *fptr, FILE *Outfptr,
     LeftVelocityY = 0.0, RightVelocityY = 0.0, CenterVelocityY = 0.0,
     LeftVelocityZ = 0.0, RightVelocityZ = 0.0, CenterVelocityZ = 0.0,
     LeftPressure = 1.0, RightPressure = 1.0, CenterPressure = 1.0,
-    LeftColdGasDensity = 1.0, RightColdGasDensity = 1.0, CenterColdGasDensity = 1.0;
-  
+    LeftColdGasDensity = 1.0, RightColdGasDensity = 1.0, CenterColdGasDensity = 1.0,
+    LeftColdGasVelocityX = 0.0, RightColdGasVelocityX = 0.0, CenterColdGasVelocityX = 0.0,
+    LeftColdGasVelocityY = 0.0, RightColdGasVelocityY = 0.0, CenterColdGasVelocityY = 0.0,
+    LeftColdGasVelocityZ = 0.0, RightColdGasVelocityZ = 0.0, CenterColdGasVelocityZ = 0.0;  
   /* read input from file */
 
 
@@ -107,6 +109,25 @@ int ColdShockTubesInitialize(FILE *fptr, FILE *Outfptr,
       &CenterDensity);
     ret += sscanf(line, "HydroShockTubesCenterColdGasDensity = %"FSYM,
       &CenterColdGasDensity);
+    ret += sscanf(line, "HydroShockTubesLeftColdGasVelocityX = %"FSYM,
+                  &LeftColdGasVelocityX);
+    ret += sscanf(line, "HydroShockTubesLeftColdGasVelocityY = %"FSYM,
+                  &LeftColdGasVelocityY);
+    ret += sscanf(line, "HydroShockTubesLeftColdGasVelocityZ = %"FSYM,
+		  &LeftColdGasVelocityZ);
+    ret += sscanf(line, "HydroShockTubesRightColdGasVelocityX = %"FSYM,
+                  &RightColdGasVelocityX);
+    ret += sscanf(line, "HydroShockTubesRightColdGasVelocityY = %"FSYM,
+                  &RightColdGasVelocityY);
+    ret += sscanf(line, "HydroShockTubesRightColdGasVelocityZ = %"FSYM,
+                  &RightColdGasVelocityZ);
+    ret += sscanf(line, "HydroShockTubesCenterColdGasVelocityX = %"FSYM,
+                  &CenterColdGasVelocityX);
+    ret += sscanf(line, "HydroShockTubesCenterColdGasVelocityY = %"FSYM,
+                  &CenterColdGasVelocityY);
+    ret += sscanf(line, "HydroShockTubesCenterColdGasVelocityZ = %"FSYM,
+                  &CenterColdGasVelocityZ);
+
 
     /* if the line is suspicious, issue a warning */
 
@@ -134,7 +155,10 @@ int ColdShockTubesInitialize(FILE *fptr, FILE *Outfptr,
 				  LeftVelocityY,  RightVelocityY, CenterVelocityY,
 				  LeftVelocityZ,  RightVelocityZ, CenterVelocityZ,
 				  LeftPressure,   RightPressure,  CenterPressure,
-				  LeftColdGasDensity, RightColdGasDensity, CenterColdGasDensity);
+				  LeftColdGasDensity, RightColdGasDensity, CenterColdGasDensity,
+				  LeftColdGasVelocityX,  RightColdGasVelocityX, CenterColdGasVelocityX,
+                                  LeftColdGasVelocityY,  RightColdGasVelocityY, CenterColdGasVelocityY,
+                                  LeftColdGasVelocityZ,  RightColdGasVelocityZ, CenterColdGasVelocityZ);
 
   /* Convert minimum initial overdensity for refinement to mass
      (unless MinimumMass itself was actually set). */
@@ -178,7 +202,10 @@ int ColdShockTubesInitialize(FILE *fptr, FILE *Outfptr,
 	   LeftVelocityY,  RightVelocityY, CenterVelocityY,
 	   LeftVelocityZ,  RightVelocityZ, CenterVelocityZ,
 	   LeftPressure,   RightPressure,  CenterPressure,
-	   LeftColdGasDensity, RightColdGasDensity, CenterColdGasDensity);
+	   LeftColdGasDensity, RightColdGasDensity, CenterColdGasDensity,
+	   LeftColdGasVelocityX,  RightColdGasVelocityX, CenterColdGasVelocityX,
+           LeftColdGasVelocityY,  RightColdGasVelocityY, CenterColdGasVelocityY,
+           LeftColdGasVelocityZ,  RightColdGasVelocityZ, CenterColdGasVelocityZ);
 	Temp = Temp->NextGridThisLevel;
       }
     } // end: loop over levels

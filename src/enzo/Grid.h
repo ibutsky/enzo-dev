@@ -1960,7 +1960,11 @@ int zEulerSweep(int j, int NumberOfSubgrids, fluxes *SubgridFluxes[],
                                  float LeftVelocityY, float RightVelocityY,
                                  float LeftVelocityZ, float RightVelocityZ,
                                  float LeftPressure, float RightPressure,
-                                 float LeftColdGasEnergy, float RightColdGasEnergy);
+				 float LeftColdGasEnergy, float RightColdGasEnergy,
+				 float LeftColdGasVelocityX,  float RightColdGasVelocityX,
+                                 float LeftColdGasVelocityY,  float RightColdGasVelocityY,
+                                 float LeftColdGasVelocityZ,  float RightColdGasVelocityZ);
+  
   int ColdShockTubesInitializeGrid(float InitialDiscontinuity,
                                  float SecondDiscontinuity,
                                  float LeftDensity, float RightDensity,
@@ -1974,7 +1978,13 @@ int zEulerSweep(int j, int NumberOfSubgrids, fluxes *SubgridFluxes[],
                                  float LeftPressure, float RightPressure,
                                  float CenterPressure,
                                  float LeftColdGasEnergy, float RightColdGasEnergy,
-                                 float CenterColdGasEnergy);
+				 float CenterColdGasEnergy,
+				 float LeftColdGasVelocityX,  float RightColdGasVelocityX,
+				 float CenterColdGasVelocityX,
+                                 float LeftColdGasVelocityY,  float RightColdGasVelocityY,
+				 float CenterColdGasVelocityY,
+                                 float LeftColdGasVelocityZ,  float RightColdGasVelocityZ,
+				 float CenterColdGasVelocityZ);
   
 /* Initialize for a uniform grid (returns SUCCESS or FAIL) */
 
