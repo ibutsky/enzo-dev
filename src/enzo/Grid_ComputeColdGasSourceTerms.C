@@ -135,9 +135,8 @@ int grid::ComputeColdGasSourceTerms(){
         for (j = GridStartIndex[1]; j <= GridEndIndex[1]; j++)
             for (i = GridStartIndex[0]; i <= GridEndIndex[0]; i++) {
                 idx = ELT(i,j,k);
-                // HARD CODED FOR TESTING ONLY
-                cooling_time[idx] = 1;
-                
+
+        
                 // cold gas formation source terms if CGSMThemralInstability turned on and
                 // hot gas is in thermally unstalble temperature range and cold gas scale is unresolved
                 // Q: should this also have a density constraint?
@@ -151,6 +150,16 @@ int grid::ComputeColdGasSourceTerms(){
                 }
                 HotGasTemperature = gasenergy*pow(VelocityUnits, 2)*Mu*mh*(Gamma-1) / kboltz;
                 rho = BaryonField[DensNum][idx];
+                
+                
+                // HARD CODED FOR TESTING ONLY
+                // simple power law cooling with fudge factor
+                dE_radiative_cooling = 20 * rho * rho * pow(HotGasTemperature, -0.5) * dtFixed;
+               // dE_radiative_cooling = rho * gasenergy * dtFixed / cooling_time[idx];
+
+                // END HARD CODING
+                
+                
 //   printf("HotGasTemperature = %"FSYM"\n", HotGasTemperature);
                 if ((CGSMThermalInstability > 0) & (HotGasTemperature < 1e6) & (HotGasTemperature > 1e4)){//} & (cold_gas_radius[idx] < dx[0])){
                     // First calculate cooling time
@@ -161,14 +170,13 @@ int grid::ComputeColdGasSourceTerms(){
                     // Q: How/where should we prevent cooling for this temperature gas? Probably in Grid_SolveRateAndCool
                     // maybe place a rapper around cooling function to return delta e
               
-                    dE_radiative_cooling = rho * gasenergy * dtFixed / cooling_time[idx];
-
                     coldgasenergy = (CGSMCharacteristicTemperature / TemperatureUnits)/(Mu*(Gamma - 1.0));
                   
-                    drho = dE_radiative_cooling / (gasenergy - coldgasenergy);
+                    drho = dE_radiative_cooling / coldgasenergy;
                         
                     // first update gas internal energy to maintain constant pressure after mass transfer
-                    gasenergy = (rho * gasenergy - drho * coldgasenergy) / (rho - drho);
+                   // gasenergy = (rho * gasenergy - drho * coldgasenergy) / (rho - drho);
+                    gasenergy *= rho / (rho - drho);
                     if (DualEnergyFormalism)
                         BaryonField[GENum][idx] = gasenergy;
                 
