@@ -55,7 +55,7 @@ int ColdShockTubesInitialize(FILE *fptr, FILE *Outfptr,
     LeftVelocityY = 0.0, RightVelocityY = 0.0, CenterVelocityY = 0.0,
     LeftVelocityZ = 0.0, RightVelocityZ = 0.0, CenterVelocityZ = 0.0,
     LeftPressure = 1.0, RightPressure = 1.0, CenterPressure = 1.0,
-    LeftColdGasDensity = 1.0, RightColdGasDensity = 1.0, CenterColdGasDensity = 1.0,
+    LeftColdGasDensity = 0.0, RightColdGasDensity = 0.0, CenterColdGasDensity = 0.0,
     LeftColdGasVelocityX = 0.0, RightColdGasVelocityX = 0.0, CenterColdGasVelocityX = 0.0,
     LeftColdGasVelocityY = 0.0, RightColdGasVelocityY = 0.0, CenterColdGasVelocityY = 0.0,
     LeftColdGasVelocityZ = 0.0, RightColdGasVelocityZ = 0.0, CenterColdGasVelocityZ = 0.0;  
@@ -239,13 +239,14 @@ int ColdShockTubesInitialize(FILE *fptr, FILE *Outfptr,
   DataLabel[count++] = Vel2Name;
   DataLabel[count++] = Vel3Name;
   DataLabel[count++] = TEName;
+  if (DualEnergyFormalism) {
+    DataLabel[count++] = GEName;
+  }
   DataLabel[count++] = CDensName;
   DataLabel[count++] = CVel1Name;
   DataLabel[count++] = CVel2Name;
   DataLabel[count++] = CVel3Name;  
-  if (DualEnergyFormalism) {
-    DataLabel[count++] = GEName;
-  }
+
   
 
   for (i = 0; i < count; i++)

@@ -28,21 +28,19 @@ int grid::ColdShockTubesInitializeGrid(   float x0,
                                         float cvzl, float cvzr
 					)
 {  
-  printf("test\n");
   NumberOfBaryonFields = 0;
   FieldType[NumberOfBaryonFields++] = Density;
   FieldType[NumberOfBaryonFields++] = Velocity1;
   FieldType[NumberOfBaryonFields++] = Velocity2;
   FieldType[NumberOfBaryonFields++] = Velocity3;
   FieldType[NumberOfBaryonFields++] = TotalEnergy;
+    if (DualEnergyFormalism) {
+    FieldType[NumberOfBaryonFields++] = InternalEnergy;
+  }
   FieldType[NumberOfBaryonFields++] = ColdGasDensity;
   FieldType[NumberOfBaryonFields++] = ColdGasVelocity1;
   FieldType[NumberOfBaryonFields++] = ColdGasVelocity2;
   FieldType[NumberOfBaryonFields++] = ColdGasVelocity3;
-
-  if (DualEnergyFormalism) {
-    FieldType[NumberOfBaryonFields++] = InternalEnergy;
-  }
   
   if (ProcessorNumber != MyProcessorNumber) {
     return SUCCESS;
@@ -130,14 +128,14 @@ int grid::ColdShockTubesInitializeGrid(   float x0,   float x1,
   FieldType[NumberOfBaryonFields++] = Velocity2;
   FieldType[NumberOfBaryonFields++] = Velocity3;
   FieldType[NumberOfBaryonFields++] = TotalEnergy;
+  if (DualEnergyFormalism) {
+    FieldType[NumberOfBaryonFields++] = InternalEnergy;
+  }
   FieldType[NumberOfBaryonFields++] = ColdGasDensity;
   FieldType[NumberOfBaryonFields++] = ColdGasVelocity1;
   FieldType[NumberOfBaryonFields++] = ColdGasVelocity2;
   FieldType[NumberOfBaryonFields++] = ColdGasVelocity3;
-  if (DualEnergyFormalism) {
-    FieldType[NumberOfBaryonFields++] = InternalEnergy;
-  }
-
+  
   int iCD, iCV1, iCV2, iCV3;
   this->IdentifyColdGasPhysicalQuantities(iCD, iCV1, iCV2, iCV3);
 
