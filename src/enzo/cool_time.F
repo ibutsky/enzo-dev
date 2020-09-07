@@ -3,7 +3,7 @@ c=======================================================================
 c//////////////////////  SUBROUTINE COOL_TIME \ \\\\\\\\\\\\\\\\\\\\\\\\
 c
       subroutine cool_time(
-     &                d, e, ge, u, v, w, cooltime,
+     &                d, e, ge, u, v, w, cooltime, returnabsvalue,
      &                in, jn, kn, nratec, iexpand, imethod,
      &                idual, idim, igammah,
      &                is, js, ks, ie, je, ke, 
@@ -32,7 +32,7 @@ c
 c
 c  Arguments
 c
-      INTG_PREC in, jn, kn, is, js, ks, ie, je, ke, 
+      INTG_PREC in, jn, kn, is, js, ks, ie, je, ke, returnabsvalue,
      &        idual, iexpand, nratec, idim, imethod, igammah
       R_PREC    dt, aye, temstart, temend, fh, utem, urho, gammaha,
      &        eta1, eta2, gamma, coola(nratec), mu
@@ -86,7 +86,11 @@ c        Compute the cooling time on the slice
 c
          do i = is+1, ie+1
             energy = max(p2d(i)/d(i,j,k)/(gamma-1._RKIND), tiny)
-            cooltime(i,j,k) = abs(energy/edot(i))
+            if (returnabsvalue .eq. 1) then
+               cooltime(i,j,k) = abs(energy/edot(i))
+            else
+               cooltime(i,j,k) = energy/edot(i)
+            endif
          enddo
 c
 c       Set the density back to comoving

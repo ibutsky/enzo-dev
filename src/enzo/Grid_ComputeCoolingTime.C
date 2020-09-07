@@ -54,7 +54,7 @@ int GadgetCoolingTime(float *d, float *e, float *ge,
 extern "C" void FORTRAN_NAME(cool_multi_time)(
 	float *d, float *e, float *ge, float *u, float *v, float *w, float *de,
 	float *HI, float *HII, float *HeI, float *HeII, float *HeIII,
-	float *cooltime, int *coolonly,
+	float *cooltime, int *coolonly, int *returnabsvalue, 
 	int *in, int *jn, int *kn, int *nratec, int *iexpand,
 	hydro_method *imethod,
         int *idual, int *ispecies, int *imetal, int *imcool, int *idust, int *idim,
@@ -83,7 +83,7 @@ extern "C" void FORTRAN_NAME(cool_multi_time)(
 
 extern "C" void FORTRAN_NAME(cool_time)(
 	float *d, float *e, float *ge, float *u, float *v, float *w,
-           float *cooltime,
+	float *cooltime, int *returnabsvalue,
 	int *in, int *jn, int *kn, int *nratec, int *iexpand,
 	hydro_method *imethod, int *idual, int *idim, int *igammah,
 	int *is, int *js, int *ks, int *ie, int *je, int *ke,
@@ -91,7 +91,7 @@ extern "C" void FORTRAN_NAME(cool_time)(
 	float *fh, float *utem, float *urho, 
 	float *eta1, float *eta2, float *gamma, float *coola, float *gammaha, float *mu);
  
-int grid::ComputeCoolingTime(float *cooling_time, int CoolingTimeOnly)
+int grid::ComputeCoolingTime(float *cooling_time, int CoolingTimeOnly, int ReturnAbsValue)
 {
  
   /* Return if this doesn't concern us. */
@@ -326,8 +326,10 @@ int grid::ComputeCoolingTime(float *cooling_time, int CoolingTimeOnly)
       ENZO_FAIL("Error in Grackle calculate_cooling_time.\n");
     }
 
-    for (i = 0; i < size; i++) {
-      cooling_time[i] = fabs(cooling_time[i]);
+    if (ReturnAbsValue){
+      for (i = 0; i < size; i++) {
+	cooling_time[i] = fabs(cooling_time[i]);
+      }
     }
 
     if (temp_thermal == TRUE) {
@@ -437,7 +439,7 @@ int grid::ComputeCoolingTime(float *cooling_time, int CoolingTimeOnly)
        density, totalenergy, gasenergy, velocity1, velocity2, velocity3,
        BaryonField[DeNum], BaryonField[HINum], BaryonField[HIINum],
        BaryonField[HeINum], BaryonField[HeIINum], BaryonField[HeIIINum],
-       cooling_time, &CoolingTimeOnly,
+       cooling_time, &CoolingTimeOnly, &ReturnAbsValue, 
        GridDimension, GridDimension+1, GridDimension+2,
        &CoolData.NumberOfTemperatureBins, &ComovingCoordinates,
        &HydroMethod,
@@ -509,7 +511,7 @@ int grid::ComputeCoolingTime(float *cooling_time, int CoolingTimeOnly)
     FORTRAN_NAME(cool_time)(
        BaryonField[DensNum], BaryonField[TENum], BaryonField[GENum],
           BaryonField[Vel1Num], BaryonField[Vel2Num], BaryonField[Vel3Num],
-          cooling_time,
+       cooling_time, &ReturnAbsValue,
        GridDimension, GridDimension+1, GridDimension+2,
           &CoolData.NumberOfTemperatureBins, &ComovingCoordinates,
           &HydroMethod,

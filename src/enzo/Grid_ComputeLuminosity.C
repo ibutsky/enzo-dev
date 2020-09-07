@@ -70,7 +70,7 @@ extern "C" void FORTRAN_NAME(cool_multi_lum)(
 	int *iradtrans, float *photogamma);
 extern "C" void FORTRAN_NAME(cool_time)(
 	float *d, float *e, float *ge, float *u, float *v, float *w,
-           float *cooltime,
+	float *cooltime, int *returnabsvalue,
 	int *in, int *jn, int *kn, int *nratec, int *iexpand, 
            hydro_method *imethod, int *idual, int *idim,
 	int *is, int *js, int *ks, int *ie, int *je, int *ke,
@@ -241,10 +241,11 @@ int grid::ComputeLuminosity(float *luminosity, int NumberOfLuminosityFields)
        &RadiativeTransfer, BaryonField[gammaNum]);
   else {
 #ifdef UNUSED
+    int ReturnAbsValue = 1; 
     FORTRAN_NAME(cool_time)(
        BaryonField[DensNum], BaryonField[TENum], BaryonField[GENum], 
           BaryonField[Vel1Num], BaryonField[Vel2Num], BaryonField[Vel3Num], 
-          luminosity,
+       luminosity, &ReturnAbsValue, 
        GridDimension, GridDimension+1, GridDimension+2, 
           &CoolData.NumberOfTemperatureBins, &ComovingCoordinates,
           &HydroMethod,

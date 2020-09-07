@@ -4,7 +4,7 @@
 
       subroutine cool_multi_time(
      &                d, e, ge, u, v, w, de, HI, HII, HeI, HeII, HeIII,
-     &                  cooltime, coolonly,
+     &                  cooltime, coolonly, returnabsvalue,
      &                in, jn, kn, nratec, iexpand, imethod,
      &                idual, ispecies, imetal, imcool, idust, idim,
      &                is, js, ks, ie, je, ke, ih2co, ipiht, igammah,
@@ -56,7 +56,7 @@
      &        idual, iexpand, ih2co, ipiht, ispecies, imetal, idim,
      &        iradtype, nfreq, imetalregen, iradshield, iradtrans,
      &        n_xe, imcool, idust, igammah, ih2optical, iciecool,
-     &        coolonly
+     &        coolonly, returnabsvalue
       R_PREC    dt, aye, temstart, temend, redshift,
      &        utem, uxyz, uaye, urho, utim,
      &        eta1, eta2, gamma, xe_start, xe_end, z_solar
@@ -212,17 +212,23 @@
 !           in cool1d_multi)
          if (coolonly .eq. 1) then
             do i = is+1, ie+1
-               energy = max(p2d(i)/(gamma-1._RKIND), tiny)   
-               if (edot(i) .lt. 0._RKIND) then
-                  cooltime(i,j,k) = -energy/edot(i)
-               else
-                  cooltime(i,j,k) = huge;
+               energy = max(p2d(i)/(gamma-1._RKIND), tiny)
+               cooltime(i,j,k) = energy/edot(i)
+               if (returnabsvalue .eq. 1) then
+                  if (edot(i) .lt. 0._RKIND) then
+                     cooltime(i,j,k) = -energy/edot(i)
+                  else
+                     cooltime(i,j,k) = huge;
+                  endif
                endif
             enddo
          else
             do i = is+1, ie+1
-               energy = max(p2d(i)/(gamma-1._RKIND), tiny)   
-               cooltime(i,j,k) = abs(energy/edot(i))
+               energy = max(p2d(i)/(gamma-1._RKIND), tiny)
+               cooltime(i,j,k) = energy / edot(i)
+               if (returnabsvalue .eq. 1) then
+                  cooltime(i,j,k) = abs(energy/edot(i))
+               endif
             enddo
          endif
 
