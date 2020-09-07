@@ -154,13 +154,10 @@ int grid::ComputeColdGasSourceTerms(){
                 
                 // HARD CODED FOR TESTING ONLY
                 // simple power law cooling with fudge factor
-                dE_radiative_cooling = 20 * rho * rho * pow(HotGasTemperature, -0.5) * dtFixed;
-               // dE_radiative_cooling = rho * gasenergy * dtFixed / cooling_time[idx];
-
+              //  dE_radiative_cooling = 20 * rho * rho * pow(HotGasTemperature, -0.5) * dtFixed;
                 // END HARD CODING
+                dE_radiative_cooling = rho * gasenergy * dtFixed / cooling_time[idx];
                 
-                
-//   printf("HotGasTemperature = %"FSYM"\n", HotGasTemperature);
                 if ((CGSMThermalInstability > 0) & (HotGasTemperature < 1e6) & (HotGasTemperature > 1e4)){//} & (cold_gas_radius[idx] < dx[0])){
                     // First calculate cooling time
                     // assuming t_cool = cooling_rate / e_th
@@ -172,11 +169,14 @@ int grid::ComputeColdGasSourceTerms(){
               
                     coldgasenergy = (CGSMCharacteristicTemperature / TemperatureUnits)/(Mu*(Gamma - 1.0));
                   
-                    drho = dE_radiative_cooling / coldgasenergy;
-                        
-                    // first update gas internal energy to maintain constant pressure after mass transfer
-                   // gasenergy = (rho * gasenergy - drho * coldgasenergy) / (rho - drho);
-                    gasenergy *= rho / (rho - drho);
+                    drho = dE_radiative_cooling / (gasenergy - coldgasenergy);
+                    BaryonField[DensNum][idx] -= drho;
+                    BaryonField[CDensNum][idx] += drho;
+                }
+                // else, apply normal cooling
+                else {
+                    // update gas internal energy to maintain constant pressure after mass transfer
+                    gasenergy += dE_radiative_cooling / rho;
                     if (DualEnergyFormalism)
                         BaryonField[GENum][idx] = gasenergy;
                 

@@ -25,6 +25,7 @@
  
 int grid::MultiSpeciesHandler()
 {
+  if (ColdGasSubgridModel) return SUCCESS;
   if ((!MultiSpecies) && (!RadiativeCooling)) return SUCCESS; 
   if (GadgetEquilibriumCooling != 0) return SUCCESS;
 
