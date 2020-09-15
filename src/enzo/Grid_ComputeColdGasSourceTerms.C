@@ -151,7 +151,10 @@ int grid::ComputeColdGasSourceTerms(){
                 // If gas is thermally unstable, transfer mass from hot gas to cold gas in lieu of cooling
                 if ((CGSMThermalInstability > 0) & (HotGasTemperature < 1e6) & (HotGasTemperature > 1e4) & (dE_radiative_cooling < 0)){//} & (cold_gas_radius[idx] < dx[0])){
                     coldgasenergy = CGSMCharacteristicTemperature * kboltz / (Mu*mh*(Gamma-1.0)) / pow(VelocityUnits, 2);
-                    drho = -dE_radiative_cooling / (gasenergy - coldgasenergy);
+                    // mass to be transferred
+                    drho = -dE_radiative_cooling / coldgasenergy;
+                    // updated hot gas energy
+                    gasenergy = (rho*gasenergy + dE_radiative_cooling) / (rho - drho);
                     
                     // transfer mass between hot phase and cold phase
                     BaryonField[DensNum][idx] -= drho;
@@ -161,16 +164,18 @@ int grid::ComputeColdGasSourceTerms(){
                 // Else, do normal cooling
                 else {
                     gasenergy += dE_radiative_cooling / rho;
-                    
-                    if (DualEnergyFormalism)
-                        BaryonField[GENum][idx] = gasenergy;
-                    // update the total energy with the new gas energy
-                    v2 = BaryonField[Vel1Num][idx] * BaryonField[Vel1Num][idx];
-                    if (GridRank > 1) v2 += BaryonField[Vel2Num][idx]*BaryonField[Vel2Num][idx];
-                    if (GridRank > 2) v2 += BaryonField[Vel3Num][idx]*BaryonField[Vel3Num][idx];
-                    BaryonField[TENum][idx] = gasenergy + 0.5*v2;
-        
                 }
+                
+                // in both cases, need to update the internal and total energies
+                if (DualEnergyFormalism)
+                    BaryonField[GENum][idx] = gasenergy;
+                // update the total energy with the new gas energy
+                v2 = BaryonField[Vel1Num][idx] * BaryonField[Vel1Num][idx];
+                if (GridRank > 1) v2 += BaryonField[Vel2Num][idx]*BaryonField[Vel2Num][idx];
+                if (GridRank > 2) v2 += BaryonField[Vel3Num][idx]*BaryonField[Vel3Num][idx];
+                BaryonField[TENum][idx] = gasenergy + 0.5*v2;
+        
+                
           } // end triple for
     } // end if CGSMThermalInstability
         
