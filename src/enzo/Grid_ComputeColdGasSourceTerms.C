@@ -122,7 +122,7 @@ int grid::ComputeColdGasSourceTerms(){
     if (this->ComputeCoolingTimeAtSpecifiedTemperature(peak_cooling_time, CGSMMaximumCoolingTemperature, TRUE) == FAIL) {
       ENZO_FAIL("Error in grid->ComputeCoolingTimeAtSpecifiedTemperature.\n");
     }
-    if (this->ComputeCoolingTime(cooling_time) == FAIL) {
+   if (this->ComputeCoolingTime(cooling_time, TRUE, FALSE) == FAIL) {
       ENZO_FAIL("Error in grid->ComputeCoolingTimeAtSpecifiedTemperature.\n");
     }
 
@@ -136,10 +136,6 @@ int grid::ComputeColdGasSourceTerms(){
             for (i = GridStartIndex[0]; i <= GridEndIndex[0]; i++) {
                 idx = ELT(i,j,k);
 
-        
-                // cold gas formation source terms if CGSMThemralInstability turned on and
-                // hot gas is in thermally unstalble temperature range and cold gas scale is unresolved
-                // Q: should this also have a density constraint?
                 if (DualEnergyFormalism)
                     gasenergy = BaryonField[GENum][idx];
                 else {
@@ -150,46 +146,30 @@ int grid::ComputeColdGasSourceTerms(){
                 }
                 HotGasTemperature = gasenergy*pow(VelocityUnits, 2)*Mu*mh*(Gamma-1) / kboltz;
                 rho = BaryonField[DensNum][idx];
-                
-                
-                // HARD CODED FOR TESTING ONLY
-                // simple power law cooling with fudge factor
-              //  dE_radiative_cooling = 20 * rho * rho * pow(HotGasTemperature, -0.5) * dtFixed;
-                // END HARD CODING
                 dE_radiative_cooling = rho * gasenergy * dtFixed / cooling_time[idx];
-                
-                if ((CGSMThermalInstability > 0) & (HotGasTemperature < 1e6) & (HotGasTemperature > 1e4)){//} & (cold_gas_radius[idx] < dx[0])){
-                    // First calculate cooling time
-                    // assuming t_cool = cooling_rate / e_th
-                    // therefore, the \delta e in one time step = rho_th * e_th * dtFixed / t_cool
-                    // not sure if that's the right way to think about it...
 
-                    // Q: How/where should we prevent cooling for this temperature gas? Probably in Grid_SolveRateAndCool
-                    // maybe place a rapper around cooling function to return delta e
-              
-                    coldgasenergy = (CGSMCharacteristicTemperature / TemperatureUnits)/(Mu*(Gamma - 1.0));
-                  
-                    drho = dE_radiative_cooling / (gasenergy - coldgasenergy);
+                // If gas is thermally unstable, transfer mass from hot gas to cold gas in lieu of cooling
+                if ((CGSMThermalInstability > 0) & (HotGasTemperature < 1e6) & (HotGasTemperature > 1e4) & (dE_radiative_cooling < 0)){//} & (cold_gas_radius[idx] < dx[0])){
+                    coldgasenergy = CGSMCharacteristicTemperature * kboltz / (Mu*mh*(Gamma-1.0)) / pow(VelocityUnits, 2);
+                    drho = -dE_radiative_cooling / (gasenergy - coldgasenergy);
+                    
+                    // transfer mass between hot phase and cold phase
                     BaryonField[DensNum][idx] -= drho;
                     BaryonField[CDensNum][idx] += drho;
+                    
                 }
-                // else, apply normal cooling
+                // Else, do normal cooling
                 else {
-                    // update gas internal energy to maintain constant pressure after mass transfer
                     gasenergy += dE_radiative_cooling / rho;
+                    
                     if (DualEnergyFormalism)
                         BaryonField[GENum][idx] = gasenergy;
-                
-                    // either way, update the total energy with the new gas energy
+                    // update the total energy with the new gas energy
                     v2 = BaryonField[Vel1Num][idx] * BaryonField[Vel1Num][idx];
                     if (GridRank > 1) v2 += BaryonField[Vel2Num][idx]*BaryonField[Vel2Num][idx];
                     if (GridRank > 2) v2 += BaryonField[Vel3Num][idx]*BaryonField[Vel3Num][idx];
                     BaryonField[TENum][idx] = gasenergy + 0.5*v2;
-                
-
-                    // then update gas and cold gas densities to account for mass transfer
-                    BaryonField[DensNum][idx] -= drho;
-                    BaryonField[CDensNum][idx] += drho;
+        
                 }
           } // end triple for
     } // end if CGSMThermalInstability
