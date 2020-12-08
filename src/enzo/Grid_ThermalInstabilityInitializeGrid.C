@@ -68,7 +68,6 @@ int grid::ThermalInstabilityInitializeGrid(float TIMeanDensity, float TIMeanTemp
      if ((CRNum = FindField(CRDensity, FieldType, NumberOfBaryonFields)) < 0)
        ENZO_FAIL("Cannot Find Cosmic Rays");
    }
-
    int MetallicityField = FALSE;
 
    if (MultiSpecies) {
@@ -323,7 +322,8 @@ int grid::ThermalInstabilityInitializeGrid(float TIMeanDensity, float TIMeanTemp
             // Set the velocity to zero 
             BaryonField[Vel1Num][cell_index] = 0.0;
             BaryonField[Vel2Num][cell_index] = 0.0;
-            BaryonField[Vel3Num][cell_index] = 0.0;       
+	    if (GridRank > 2)
+	      BaryonField[Vel3Num][cell_index] = 0.0;       
 	    
 	    
 	    if (HydroMethod == MHD_RK){
