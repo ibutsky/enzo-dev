@@ -56,6 +56,7 @@ int grid::ThermalInstabilityInitializeGrid(float TIMeanDensity, float TIMeanTemp
       size *= GridDimension[dim];
 
    int DensNum, GENum, TENum, Vel1Num, Vel2Num, Vel3Num, B1Num, B2Num, B3Num, PhiNum, CRNum;
+   int iCD, iCV1, iCV2, iCV3;
    int DeNum, HINum, HIINum, HeINum, HeIINum, HeIIINum, HMNum, H2INum, H2IINum,
       DINum, DIINum, HDINum, MetalNum;
 
@@ -68,6 +69,10 @@ int grid::ThermalInstabilityInitializeGrid(float TIMeanDensity, float TIMeanTemp
      if ((CRNum = FindField(CRDensity, FieldType, NumberOfBaryonFields)) < 0)
        ENZO_FAIL("Cannot Find Cosmic Rays");
    }
+
+   if (ColdGasSubgridModel)
+     this->IdentifyColdGasPhysicalQuantities(iCD, iCV1, iCV2, iCV3);
+   
    int MetallicityField = FALSE;
 
    if (MultiSpecies) {
@@ -351,6 +356,13 @@ int grid::ThermalInstabilityInitializeGrid(float TIMeanDensity, float TIMeanTemp
 		BaryonField[CRNum][cell_index]  = TICosmicRayPressureRatio * T0 / Mu * rho0 / (CRgamma - 1.0);
 	      if (TIPerturbationType == 2)
 		BaryonField[CRNum][cell_index] -= dGasPressure / (CRgamma - 1.0) * GasDensity;
+	    }
+
+	    if (ColdGasSubgridModel){
+	      BaryonField[iCD][cell_index] = 1e-10;
+	      BaryonField[iCV1][cell_index] = 0;	
+	      BaryonField[iCV2][cell_index] = 0;
+      	      BaryonField[iCV3][cell_index] = 0;	
 	    }
 
 	    // Set up the chemistry.

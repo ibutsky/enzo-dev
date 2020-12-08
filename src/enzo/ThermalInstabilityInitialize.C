@@ -51,6 +51,10 @@ int ThermalInstabilityInitialize(FILE *fptr, FILE *Outfptr, HierarchyEntry &TopG
    char *PhiName = "Phi";
    char *Phi_pName = "Phip";
    char *CRName = "CREnergyDensity";
+   char *CDensName = "ColdGasDensity";
+   char *CVel1Name = "ColdGasVelocity1";
+   char *CVel2Name = "ColdGasVelocity2";
+   char *CVel3Name = "ColdGasVelocity3";
    char *ElectronName = "Electron_Density";
    char *HIName = "HI_Density";
    char *HIIName = "HII_Density";
@@ -162,7 +166,8 @@ int ThermalInstabilityInitialize(FILE *fptr, FILE *Outfptr, HierarchyEntry &TopG
         DataLabel[i++] = GEName;
     DataLabel[i++] = Vel1Name;
     DataLabel[i++] = Vel2Name;
-    DataLabel[i++] = Vel3Name;
+    if (MetaData.TopGridRank > 2 || HydroMethod > 2)
+      DataLabel[i++] = Vel3Name;
     if (HydroMethod == MHD_RK) {
       DataLabel[i++] =  BxName;
       DataLabel[i++] =  ByName;
@@ -174,7 +179,13 @@ int ThermalInstabilityInitialize(FILE *fptr, FILE *Outfptr, HierarchyEntry &TopG
     }
     if (CRModel)
       DataLabel[i++] = CRName;
-
+    if (ColdGasSubgridModel){
+      DataLabel[i++] = CDensName;
+      DataLabel[i++] = CVel1Name;
+      DataLabel[i++] = CVel2Name;
+      DataLabel[i++] = CVel3Name;
+    }
+    
     if (TestProblemData.MultiSpecies) {
       DataLabel[i++] = ElectronName;
       DataLabel[i++] = HIName;
