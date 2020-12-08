@@ -44,19 +44,19 @@
 #define UUID MYUUID
 #endif
 #include <stdio.h>
-#ifdef HAVE_UNISTD_H
+//#ifdef HAVE_UNISTD_H
 #include <unistd.h>
-#endif
-#ifdef HAVE_STDLIB_H
+//#endif
+//#ifdef HAVE_STDLIB_H
 #include <stdlib.h>
-#endif
+//#endif
 #include <string.h>
 #include <fcntl.h>
 #include <errno.h>
 #include <sys/types.h>
-#ifdef HAVE_SYS_TIME_H
+//#ifdef HAVE_SYS_TIME_H
 #include <sys/time.h>
-#endif
+//#endif
 #include <sys/wait.h>
 #include <sys/stat.h>
 #ifdef HAVE_SYS_FILE_H

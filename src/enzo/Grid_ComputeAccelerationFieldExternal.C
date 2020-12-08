@@ -650,6 +650,65 @@ int grid::ComputeAccelerationFieldExternal()
     
   } // end if (ExternalGravity == 1)
 
+
+  /* -----------------------------------------------------------------     
+     ExternalGravity 2: symmetric about plane in the z direction
+     ----------------------------------------------------------------- */
+  if (ExternalGravity == 2) {
+    float DensityUnits = 1.0, LengthUnits = 1.0, TemperatureUnits = 1,
+      TimeUnits = 1.0, VelocityUnits = 1.0;
+    GetUnits(&DensityUnits, &LengthUnits, &TemperatureUnits,
+             &TimeUnits, &VelocityUnits, &MassUnits, Time);
+    double AccelerationUnits = LengthUnits / POW(TimeUnits,2);
+
+
+    //TODO define zc
+    FLOAT x, y, z, xpos, ypos, zpos, xscale, yscale, zscale;
+    int n = 0;
+    double g;
+    // gravitational acceleration constant
+    double g0 = ExternalGravityConstant / AccelerationUnits;
+    // gravitational softening radius
+    double a = ExternalGravitySofteningRadius * kpc_cm / LengthUnits;
+    for (int k = 0; k < GridDimension[2]; k++) {
+      for (int j = 0; j < GridDimension[1]; j++) {
+	for (int i = 0; i < GridDimension[0]; i++, n++) {
+
+	  if (GridRank > 2){
+	    z = CellLeftEdge[2][k] + 0.5*CellWidth[2][k];
+	    zpos = z - ExternalGravityPosition[2];
+            zscale = zpos/a;
+            g = g0 * zscale / sqrt(1+zscale*zscale);
+
+            AccelerationField[0][n] += 0;
+            AccelerationField[1][n] += 0;
+            AccelerationField[2][n] += -g;
+	  }
+	  
+	  else if (GridRank > 1){
+	    y = CellLeftEdge[1][j] + 0.5*CellWidth[1][j];
+	    ypos = y - ExternalGravityPosition[1];
+
+            yscale = ypos/a;
+            g = g0 * yscale / sqrt(1+yscale*yscale);
+
+            AccelerationField[0][n] += 0;
+            AccelerationField[1][n] += -g;
+	  }
+	  else{
+            x = CellLeftEdge[0][i] + 0.5*CellWidth[0][i];
+            xpos = x - ExternalGravityPosition[0];
+
+            xscale = xpos/a;
+            g = g0 * xscale / sqrt(1+xscale*xscale);
+
+            AccelerationField[0][n] += -g;
+
+          }
+	} //end i
+      } // end j
+    } // end k
+  }
   /* -----------------------------------------------------------------
      ExternalGravity > 9 : Acceleration from specified potential field.
 

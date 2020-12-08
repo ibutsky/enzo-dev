@@ -536,6 +536,7 @@ int ReadParameterFile(FILE *fptr, TopGridData &MetaData, float *Initialdt)
     ret += sscanf(line, "ExternalGravityConstant = %"FSYM, &ExternalGravityConstant);
     ret += sscanf(line, "ExternalGravityRadius   = %"FSYM,&ExternalGravityRadius);
     ret += sscanf(line, "ExternalGravityDensity  = %"FSYM,&ExternalGravityDensity);
+    ret += sscanf(line, "ExternalGravitySofteningRadius = %"FSYM,&ExternalGravitySofteningRadius);
     ret += sscanf(line, "ExternalGravityPosition = %"PSYM" %"PSYM" %"PSYM,
 		  ExternalGravityPosition, ExternalGravityPosition+1,
 		  ExternalGravityPosition+2);

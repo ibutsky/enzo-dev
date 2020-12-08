@@ -18,7 +18,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-
+#include <math.h>
 
 #include "ErrorExceptions.h"
 #include "macros_and_parameters.h"
@@ -55,8 +55,10 @@ int ExternalBoundary::SetExternalBoundary(int FieldRank, int GridDims[],
  
   /* declarations */
  
-  int i, j, k, dim, Sign, bindex;
-  float *index;
+  int i, j, k, dim, Sign, bindex, sign_12, sign_23;
+  float *index, q1, q2, q3, temp_index, rho, rho1, rho2, rho3;
+
+  int area = GridDims[0] * GridDims[1];
 
 #ifdef OOC_BOUNDARY
   hid_t       file_id, dset_id, attr_id;
@@ -200,6 +202,21 @@ int ExternalBoundary::SetExternalBoundary(int FieldRank, int GridDims[],
   	  case shearing:
 	     *index = *(index + (EndIndex[0] - StartIndex[0] + 1));
  	    break;
+          case hydrostatic:
+            q1 = *(Field + StartIndex[0] +     j*GridDims[0] + k*GridDims[1]*GridDims[0]);
+            q2 = *(Field + StartIndex[0] + 1 + j*GridDims[0] + k*GridDims[1]*GridDims[0]);
+            q3 = *(Field + StartIndex[0] + 2 + j*GridDims[0] + k*GridDims[1]*GridDims[0]);
+
+            *index = q1 + (StartIndex[0]-i)*(q1-q2) +
+              (StartIndex[0]-i)*(StartIndex[0]-i)*(q1-2*q2+q3)/2.;
+
+            if (FieldType == Density && q1*q2 > 0) {
+              q1 = log10(q1);
+              q2 = log10(q2);
+              *index = pow(10, q1 + (StartIndex[0]-i)*(q1-q2));
+            }
+            if (FieldType == Velocity1 || FieldType == Velocity2 || FieldType == Velocity3) *index = 0;
+            break;
           case BoundaryUndefined:
             break;
           default:
@@ -238,7 +255,22 @@ int ExternalBoundary::SetExternalBoundary(int FieldRank, int GridDims[],
 	  case shearing:
  	    *index = *(index + (EndIndex[0] - StartIndex[0] + 1));
 	    break;
-	  case BoundaryUndefined:
+          case hydrostatic:
+            q1 = *(Field + StartIndex[0] +     j*GridDims[0] + k*GridDims[1]*GridDims[0]);
+            q2 = *(Field + StartIndex[0] + 1 + j*GridDims[0] + k*GridDims[1]*GridDims[0]);
+            q3 = *(Field + StartIndex[0] + 2 + j*GridDims[0] + k*GridDims[1]*GridDims[0]);
+
+            *index = q1 + (StartIndex[0]-i)*(q1-q2) +
+              (StartIndex[0]-i)*(StartIndex[0]-i)*(q1-2*q2+q3)/2.;
+
+            if (FieldType == Density && q1*q2 > 0) {
+	      q1 = log10(q1);
+	      q2 = log10(q2);
+	      *index = pow(10, q1 + (StartIndex[0]-i)*(q1-q2));
+	    }
+            if (FieldType == Velocity1 || FieldType == Velocity2 || FieldType == Velocity3) *index = 0;
+            break;
+          case BoundaryUndefined:
             break;
 	  default:
 	    ENZO_VFAIL("BoundaryType %"ISYM" not recognized (x-left).\n",
@@ -305,6 +337,20 @@ int ExternalBoundary::SetExternalBoundary(int FieldRank, int GridDims[],
  	  case shearing:
  	     *index = *(index - (EndIndex[0] - StartIndex[0] + 1));
  	    break;
+          case hydrostatic:
+            q1 = *(Field + (EndIndex[0]    ) + j*GridDims[0] + k*GridDims[1]*GridDims[0]);
+            q2 = *(Field + (EndIndex[0] - 1) + j*GridDims[0] + k*GridDims[1]*GridDims[0]);
+            q3 = *(Field + (EndIndex[0] - 2) + j*GridDims[0] + k*GridDims[1]*GridDims[0]);
+
+            *index = q1 + (i+1)*(q1-q2) + (i+1)*(i+1)*(q1-2*q2+q3)/2.;
+
+            if (FieldType == Density  && q1*q2 >0){
+              q1 = log10(q1);
+              q2 = log10(q2);
+              *index = pow(10, q1 + (i+1)*(q1-q2));
+            }
+            if (FieldType == Velocity1 || FieldType == Velocity2 || FieldType == Velocity3) *index = 0;
+            break;
           case BoundaryUndefined:
             break;
           default:
@@ -344,7 +390,21 @@ int ExternalBoundary::SetExternalBoundary(int FieldRank, int GridDims[],
  	  case shearing:
  	    *index = *(index - (EndIndex[0] - StartIndex[0] + 1));
  	    break;
-	  case BoundaryUndefined:
+	  case hydrostatic:
+            q1 = *(Field + (EndIndex[0]    ) + j*GridDims[0] + k*GridDims[1]*GridDims[0]);
+            q2 = *(Field + (EndIndex[0] - 1) + j*GridDims[0] + k*GridDims[1]*GridDims[0]);
+            q3 = *(Field + (EndIndex[0] - 2) + j*GridDims[0] + k*GridDims[1]*GridDims[0]);
+
+            *index = q1 + (i+1)*(q1-q2) + (i+1)*(i+1)*(q1-2*q2+q3)/2.;
+
+            if (FieldType == Density  && q1*q2 >0){
+              q1 = log10(q1);
+              q2 = log10(q2);
+              *index = pow(10, q1 + (i+1)*(q1-q2));
+            }
+            if (FieldType == Velocity1 || FieldType == Velocity2 || FieldType == Velocity3) *index = 0;
+            break;
+          case BoundaryUndefined:
             break;
 	  default:
 	    ENZO_VFAIL("BoundaryType %"ISYM" not recognized (x-right).\n",
@@ -413,6 +473,21 @@ int ExternalBoundary::SetExternalBoundary(int FieldRank, int GridDims[],
  	  case shearing:
  	    *index = *(index + (EndIndex[1] - StartIndex[1] + 1)*GridDims[0]);
 	    break;
+          case hydrostatic:
+            q1 = *(Field + i + (StartIndex[1]    )*GridDims[0] + k*GridDims[1]*GridDims[0]);
+            q2 = *(Field + i + (StartIndex[1] + 1)*GridDims[0] + k*GridDims[1]*GridDims[0]);
+            q3 = *(Field + i + (StartIndex[1] + 2)*GridDims[0] + k*GridDims[1]*GridDims[0]);
+
+            *index = q1 + (StartIndex[1]-j)*(q1-q2) +
+              (StartIndex[1]-j)*(StartIndex[1]-j)*(q1-2*q2+q3)/2.;
+
+            if (FieldType == Density && q1*q2 > 0) {
+              q1 = log10(q1);
+              q2 = log10(q2);
+              *index = pow(10, q1 + (StartIndex[1]-j)*(q1-q2));
+            }
+            if (FieldType == Velocity1 || FieldType == Velocity2 || FieldType == Velocity3) *index = 0;
+            break;
           case BoundaryUndefined:
             break;
           default:
@@ -452,7 +527,22 @@ int ExternalBoundary::SetExternalBoundary(int FieldRank, int GridDims[],
  	  case shearing:
  	    *index = *(index + (EndIndex[1] - StartIndex[1] + 1)*GridDims[0]);
  	    break;
-	  case BoundaryUndefined:
+          case hydrostatic:
+            q1 = *(Field + i + (StartIndex[1]    )*GridDims[0] + k*GridDims[1]*GridDims[0]);
+            q2 = *(Field + i + (StartIndex[1] + 1)*GridDims[0] + k*GridDims[1]*GridDims[0]);
+            q3 = *(Field + i + (StartIndex[1] + 2)*GridDims[0] + k*GridDims[1]*GridDims[0]);
+
+            *index = q1 + (StartIndex[1]-j)*(q1-q2) +
+              (StartIndex[1]-j)*(StartIndex[1]-j)*(q1-2*q2+q3)/2.;
+
+            if (FieldType == Density && q1*q2 > 0) {
+	      q1 = log10(q1);
+	      q2 = log10(q2);
+	      *index = pow(10, q1 + (StartIndex[1]-j)*(q1-q2));
+	    }
+	    if (FieldType == Velocity1 || FieldType == Velocity2 || FieldType == Velocity3) *index = 0;
+            break;
+          case BoundaryUndefined:
             break;
 	  default:
 	    ENZO_VFAIL("BoundaryType %"ISYM" not recognized (y-left).\n",
@@ -519,6 +609,20 @@ int ExternalBoundary::SetExternalBoundary(int FieldRank, int GridDims[],
  	  case shearing:
  	    *index = *(index - (EndIndex[1] - StartIndex[1] + 1)*GridDims[0]);
  	    break;
+          case hydrostatic:
+            q1 = *(Field + i +(EndIndex[1]    )*GridDims[0] + k*GridDims[1]*GridDims[0]);
+            q2 = *(Field + i +(EndIndex[1] - 1)*GridDims[0] + k*GridDims[1]*GridDims[0]);
+            q3 = *(Field + i +(EndIndex[1] - 2)*GridDims[0] + k*GridDims[1]*GridDims[0]);
+
+            *index = q1 + (j+1)*(q1-q2) + (j+1)*(j+1)*(q1-2*q2+q3)/2.;
+
+            if (FieldType == Density  && q1*q2 >0){
+              q1 = log10(q1);
+              q2 = log10(q2);
+              *index = pow(10, q1 + (j+1)*(q1-q2));
+            }
+            if (FieldType == Velocity1 || FieldType == Velocity2 || FieldType == Velocity3) *index = 0;
+            break;
           case BoundaryUndefined:
             break;
           default:
@@ -559,7 +663,21 @@ int ExternalBoundary::SetExternalBoundary(int FieldRank, int GridDims[],
  	  case shearing:
  	    *index = *(index - (EndIndex[1] - StartIndex[1] + 1)*GridDims[0]);
  	    break;
-	  case BoundaryUndefined:
+	  case hydrostatic:
+            q1 = *(Field + i +(EndIndex[1]    )*GridDims[0] + k*GridDims[1]*GridDims[0]);
+            q2 = *(Field + i +(EndIndex[1] - 1)*GridDims[0] + k*GridDims[1]*GridDims[0]);
+            q3 = *(Field + i +(EndIndex[1] - 2)*GridDims[0] + k*GridDims[1]*GridDims[0]);
+
+            *index = q1 + (j+1)*(q1-q2) + (j+1)*(j+1)*(q1-2*q2+q3)/2.;
+
+            if (FieldType == Density  && q1*q2 >0){
+              q1 = log10(q1);
+              q2 = log10(q2);
+              *index = pow(10, q1 + (j+1)*(q1-q2));
+            }
+            if (FieldType == Velocity1 || FieldType == Velocity2 || FieldType == Velocity3) *index = 0;
+            break;
+          case BoundaryUndefined:
             break;
 	  default:
 	    ENZO_VFAIL("BoundaryType %"ISYM" not recognized (y-right).\n",
@@ -628,6 +746,21 @@ int ExternalBoundary::SetExternalBoundary(int FieldRank, int GridDims[],
  	  case shearing:
  	    *index = *(index + (EndIndex[2]-StartIndex[2]+1)*GridDims[0]*GridDims[1]);
  	    break;
+          case hydrostatic:
+            q1 = *(Field + i + j*GridDims[0] + (StartIndex[2]  )*GridDims[1]*GridDims[0]);
+            q2 = *(Field + i + j*GridDims[0] + (StartIndex[2]+1)*GridDims[1]*GridDims[0]);
+            q3 = *(Field + i + j*GridDims[0] + (StartIndex[2]+2)*GridDims[1]*GridDims[0]);
+
+            *index = q1 + (StartIndex[2]-k)*(q1-q2) +
+              (StartIndex[2]-k)*(StartIndex[2]-k)*(q1-2*q2+q3)/2.;
+
+            if (FieldType == Density && q1*q2 > 0) {
+	      q1 = log10(q1);
+	      q2 = log10(q2);
+	      *index = pow(10, q1 + (StartIndex[2]-k)*(q1-q2));
+	    }
+            if (FieldType == Velocity1 || FieldType == Velocity2 || FieldType == Velocity3) *index = 0;
+            break;
           case BoundaryUndefined:
             break;
           default:
@@ -640,8 +773,21 @@ int ExternalBoundary::SetExternalBoundary(int FieldRank, int GridDims[],
 
 #else
  
-    for (k = 0; k < StartIndex[2]; k++)
-      for (i = 0; i < GridDims[0]; i++)
+    for (k = 0; k < StartIndex[2]; k++){
+
+      // first, calculate the average values
+      q1 = 0;
+      q2 = 0;
+      q3 = 0;
+
+      for (i = 0; i < GridDims[0]; i++){
+        for (j = 0; j < GridDims[1]; j++) {
+	  q1 += *(Field + i + j*GridDims[0] + (StartIndex[2]  )*GridDims[1]*GridDims[0]) / area;
+	  q2 += *(Field + i + j*GridDims[0] + (StartIndex[2]+1)*GridDims[1]*GridDims[0]) / area;
+	  q3 += *(Field + i + j*GridDims[0] + (StartIndex[2]+2)*GridDims[1]*GridDims[0]) / area;	  
+	}
+      }
+      for (i = 0; i < GridDims[0]; i++){
 	for (j = 0; j < GridDims[1]; j++) {
 
 	  index = Field + i + j*GridDims[0] + k*GridDims[1]*GridDims[0];
@@ -665,19 +811,51 @@ int ExternalBoundary::SetExternalBoundary(int FieldRank, int GridDims[],
  	  case shearing:
  	    *index = *(index + (EndIndex[2]-StartIndex[2]+1)*GridDims[0]*GridDims[1]);
  	    break;
-	  case BoundaryUndefined:
+	  case hydrostatic:
+            if (FieldType == Bfield1 || FieldType == Bfield2 ||  FieldType == PhiField)
+	      *index = *(Field + i + j*GridDims[0] + (StartIndex[2])*GridDims[1]*GridDims[0]);
+	    else if (FieldType == Bfield3 || FieldType == Velocity3)
+	      *index = 0;
+            else {
+	      sign_12 = sign(q2-q1); 
+	      sign_23 = sign(q3-q2);
+
+	      if (sign_12 * sign_23 > 0){
+		*index = q1 + (StartIndex[2]-k)*(q1-q2) +
+		   (StartIndex[2]-k)*(StartIndex[2]-k)*(q1-2*q2+q3)/2.;
+	      }
+	      else
+		*index = q1 + (StartIndex[2]-k)*(q1-q2);
+
+	      if (*index < tiny_number || isnan(*index)){
+		*index = q1;
+	      }
+	      
+	      if (FieldType == Density && *index < .5){
+		*index = q1 + (StartIndex[2]-k)*(q1-q2);
+		if (*index < .5){
+		  *index = .5; 
+		  printf("k %i: Index = %e, temp_index = %e,  q = (%e, %e, %e)\n", k, *index, temp_index, q1, q2, q3);
+		}
+	      }
+	    }
+	    break;
+          case BoundaryUndefined:
             break;
 	  default:
 	    ENZO_VFAIL("BoundaryType %"ISYM" not recognized (z-left).\n",
 		    BoundaryType[field][2][0][bindex])
-	  }
-
+	      }
 	}
+      }
+    }
+
 
 #endif
 
-  }
- 
+  } 
+  
+  
   if (BoundaryDimension[2] > 1 && GridOffset[2]+GridDims[2] == BoundaryDimension[2]) {
  
     /* set z outer (right) face */
@@ -732,6 +910,20 @@ int ExternalBoundary::SetExternalBoundary(int FieldRank, int GridDims[],
  	  case shearing:
  	    *index = *(index - (EndIndex[2]-StartIndex[2]+1)*GridDims[0]*GridDims[1]);
  	    break;
+          case hydrostatic:
+            q1 = *(Field + i + j*GridDims[0] + (EndIndex[2]  )*GridDims[1]*GridDims[0]);
+            q2 = *(Field + i + j*GridDims[0] + (EndIndex[2]-1)*GridDims[1]*GridDims[0]);
+            q3 = *(Field + i + j*GridDims[0] + (EndIndex[2]-2)*GridDims[1]*GridDims[0]);
+
+            *index = q1 + (k+1)*(q1-q2) + (k+1)*(k+1)*(q1-2*q2+q3)/2.;
+
+            if (FieldType == Density  && q1*q2 > 0) {
+              q1 = log10(q1);
+              q2 = log10(q2);
+              *index = pow(10, q1 + (k+1)*(q1-q2));
+            }
+            if (FieldType == Velocity1 || FieldType == Velocity2 || FieldType == Velocity3) *index = 0;
+            break;
           case BoundaryUndefined:
             break;
           default:
@@ -745,8 +937,18 @@ int ExternalBoundary::SetExternalBoundary(int FieldRank, int GridDims[],
 
 #else
  
-    for (k = 0; k < GridDims[2]-EndIndex[2]-1; k++)
-      for (i = 0; i < GridDims[0]; i++)
+    for (k = 0; k < GridDims[2]-EndIndex[2]-1; k++){
+      q1 = 0;
+      q2 = 0; 
+      q3 = 0; 
+      for (i = 0; i < GridDims[0]; i++){
+        for (j = 0; j < GridDims[1]; j++) {
+	  q1 += *(Field + i + j*GridDims[0] + (EndIndex[2]  )*GridDims[1]*GridDims[0]) / area;
+	  q2 += *(Field + i + j*GridDims[0] + (EndIndex[2]-1)*GridDims[1]*GridDims[0]) / area;
+	  q3 += *(Field + i + j*GridDims[0] + (EndIndex[2]-2)*GridDims[1]*GridDims[0]) / area;
+	}
+      }
+      for (i = 0; i < GridDims[0]; i++){
 	for (j = 0; j < GridDims[1]; j++) {
 
 	  index = Field + i + j*GridDims[0] +
@@ -771,7 +973,34 @@ int ExternalBoundary::SetExternalBoundary(int FieldRank, int GridDims[],
  	  case shearing:
  	    *index = *(index - (EndIndex[2]-StartIndex[2]+1)*GridDims[0]*GridDims[1]);
  	    break;
- 	  case BoundaryUndefined:
+	  case hydrostatic:
+            if (FieldType == Bfield1 || FieldType == Bfield2 || FieldType == PhiField) 
+	      *index = *(Field + i + j*GridDims[0] + (EndIndex[2]  )*GridDims[1]*GridDims[0]);
+	    else if (FieldType == Bfield3 || FieldType == Velocity3)
+	      *index = 0;
+	    else {
+              sign_12 = sign(q2-q1);
+              sign_23 = sign(q3-q2);
+              if (sign_12 * sign_23 > 0){
+                 *index = q1 + (k+1)*(q1-q2) + (k+1)*(k+1)*(q1-2*q2+q3)/2.;
+              }
+	      else{
+		*index = q1 + (k+1)*(q1-q2);
+	      }
+	      
+              if (*index < tiny_number || isnan(*index)){
+		*index = q1;
+	      }
+	      if (FieldType == Density && *index < .5){
+		*index = q1 + (k+1)*(q1-q2);
+		if (*index < .5){
+		  *index = .5; 
+		  //		  printf("k %i: Index = %e, old_index = %e, temp_index = %e,  q = (%e, %e, %e)\n", k, *index, old_index, temp_index, q1, q2, q3);
+		}
+	      }
+            }
+	    break;
+          case BoundaryUndefined:
             break;
 	  default:
 	    fprintf(stderr, "BoundaryType %"ISYM" not recognized (z-right).\n",
@@ -782,6 +1011,8 @@ int ExternalBoundary::SetExternalBoundary(int FieldRank, int GridDims[],
 	  }
 
 	}
+      }
+    }
 
 #endif
 

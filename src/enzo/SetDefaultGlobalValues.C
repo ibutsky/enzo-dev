@@ -378,6 +378,7 @@ int SetDefaultGlobalValues(TopGridData &MetaData)
   ExternalGravity             = FALSE;             // off
   ExternalGravityDensity      = 0.0;
   ExternalGravityRadius       = 0.0;
+  ExternalGravitySofteningRadius = 0.0;
 
   UniformGravity              = FALSE;             // off
   UniformGravityDirection     = 0;                 // x-direction

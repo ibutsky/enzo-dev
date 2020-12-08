@@ -895,6 +895,7 @@ EXTERN float ExternalGravityDensity;
 EXTERN FLOAT ExternalGravityPosition[MAX_DIMENSION];
 EXTERN double ExternalGravityRadius;
 EXTERN FLOAT ExternalGravityOrientation[MAX_DIMENSION];
+EXTERN double ExternalGravitySofteningRadius;
 
 /* Poisson Clean */
 
