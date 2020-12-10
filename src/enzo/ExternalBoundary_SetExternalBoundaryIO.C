@@ -215,7 +215,9 @@ int ExternalBoundary::SetExternalBoundary(int FieldRank, int GridDims[],
               q2 = log10(q2);
               *index = pow(10, q1 + (StartIndex[0]-i)*(q1-q2));
             }
-            if (FieldType == Velocity1 || FieldType == Velocity2 || FieldType == Velocity3) *index = 0;
+            if (FieldType == Velocity1 || FieldType == Velocity2 || FieldType == Velocity3 ||
+		FieldType == ColdGasVelocity1 || FieldType == ColdGasVelocity2 ||
+		FieldType == ColdGasVelocity3 || FieldType == ColdGasDensity) *index = 0;
             break;
           case BoundaryUndefined:
             break;
@@ -268,7 +270,9 @@ int ExternalBoundary::SetExternalBoundary(int FieldRank, int GridDims[],
 	      q2 = log10(q2);
 	      *index = pow(10, q1 + (StartIndex[0]-i)*(q1-q2));
 	    }
-            if (FieldType == Velocity1 || FieldType == Velocity2 || FieldType == Velocity3) *index = 0;
+            if (FieldType == Velocity1 || FieldType == Velocity2 || FieldType == Velocity3 ||
+                FieldType == ColdGasVelocity1 || FieldType == ColdGasVelocity2 ||
+                FieldType == ColdGasVelocity3 || FieldType == ColdGasDensity) *index = 0;
             break;
           case BoundaryUndefined:
             break;
@@ -349,7 +353,9 @@ int ExternalBoundary::SetExternalBoundary(int FieldRank, int GridDims[],
               q2 = log10(q2);
               *index = pow(10, q1 + (i+1)*(q1-q2));
             }
-            if (FieldType == Velocity1 || FieldType == Velocity2 || FieldType == Velocity3) *index = 0;
+            if (FieldType == Velocity1 || FieldType == Velocity2 || FieldType == Velocity3 ||
+                FieldType == ColdGasVelocity1 || FieldType == ColdGasVelocity2 ||
+                FieldType == ColdGasVelocity3 || FieldType == ColdGasDensity) *index = 0;
             break;
           case BoundaryUndefined:
             break;
@@ -402,7 +408,9 @@ int ExternalBoundary::SetExternalBoundary(int FieldRank, int GridDims[],
               q2 = log10(q2);
               *index = pow(10, q1 + (i+1)*(q1-q2));
             }
-            if (FieldType == Velocity1 || FieldType == Velocity2 || FieldType == Velocity3) *index = 0;
+            if (FieldType == Velocity1 || FieldType == Velocity2 || FieldType == Velocity3 ||
+                FieldType == ColdGasVelocity1 || FieldType == ColdGasVelocity2 ||
+                FieldType == ColdGasVelocity3 || FieldType == ColdGasDensity) *index = 0;
             break;
           case BoundaryUndefined:
             break;
@@ -486,7 +494,9 @@ int ExternalBoundary::SetExternalBoundary(int FieldRank, int GridDims[],
               q2 = log10(q2);
               *index = pow(10, q1 + (StartIndex[1]-j)*(q1-q2));
             }
-            if (FieldType == Velocity1 || FieldType == Velocity2 || FieldType == Velocity3) *index = 0;
+            if (FieldType == Velocity1 || FieldType == Velocity2 || FieldType == Velocity3 ||
+                FieldType == ColdGasVelocity1 || FieldType == ColdGasVelocity2 ||
+                FieldType == ColdGasVelocity3 || FieldType == ColdGasDensity) *index = 0;
             break;
           case BoundaryUndefined:
             break;
@@ -540,7 +550,9 @@ int ExternalBoundary::SetExternalBoundary(int FieldRank, int GridDims[],
 	      q2 = log10(q2);
 	      *index = pow(10, q1 + (StartIndex[1]-j)*(q1-q2));
 	    }
-	    if (FieldType == Velocity1 || FieldType == Velocity2 || FieldType == Velocity3) *index = 0;
+            if (FieldType == Velocity1 || FieldType == Velocity2 || FieldType == Velocity3 ||
+                FieldType == ColdGasVelocity1 || FieldType == ColdGasVelocity2 ||
+                FieldType == ColdGasVelocity3 || FieldType == ColdGasDensity) *index = 0;
             break;
           case BoundaryUndefined:
             break;
@@ -621,7 +633,9 @@ int ExternalBoundary::SetExternalBoundary(int FieldRank, int GridDims[],
               q2 = log10(q2);
               *index = pow(10, q1 + (j+1)*(q1-q2));
             }
-            if (FieldType == Velocity1 || FieldType == Velocity2 || FieldType == Velocity3) *index = 0;
+            if (FieldType == Velocity1 || FieldType == Velocity2 || FieldType == Velocity3 ||
+                FieldType == ColdGasVelocity1 || FieldType == ColdGasVelocity2 ||
+                FieldType == ColdGasVelocity3 || FieldType == ColdGasDensity) *index = 0;
             break;
           case BoundaryUndefined:
             break;
@@ -675,7 +689,9 @@ int ExternalBoundary::SetExternalBoundary(int FieldRank, int GridDims[],
               q2 = log10(q2);
               *index = pow(10, q1 + (j+1)*(q1-q2));
             }
-            if (FieldType == Velocity1 || FieldType == Velocity2 || FieldType == Velocity3) *index = 0;
+            if (FieldType == Velocity1 || FieldType == Velocity2 || FieldType == Velocity3 ||
+                FieldType == ColdGasVelocity1 || FieldType == ColdGasVelocity2 ||
+                FieldType == ColdGasVelocity3 || FieldType == ColdGasDensity) *index = 0;
             break;
           case BoundaryUndefined:
             break;
@@ -759,7 +775,9 @@ int ExternalBoundary::SetExternalBoundary(int FieldRank, int GridDims[],
 	      q2 = log10(q2);
 	      *index = pow(10, q1 + (StartIndex[2]-k)*(q1-q2));
 	    }
-            if (FieldType == Velocity1 || FieldType == Velocity2 || FieldType == Velocity3) *index = 0;
+            if (FieldType == Velocity1 || FieldType == Velocity2 || FieldType == Velocity3 ||
+                FieldType == ColdGasVelocity1 || FieldType == ColdGasVelocity2 ||
+                FieldType == ColdGasVelocity3 || FieldType == ColdGasDensity) *index = 0;
             break;
           case BoundaryUndefined:
             break;
@@ -922,7 +940,9 @@ int ExternalBoundary::SetExternalBoundary(int FieldRank, int GridDims[],
               q2 = log10(q2);
               *index = pow(10, q1 + (k+1)*(q1-q2));
             }
-            if (FieldType == Velocity1 || FieldType == Velocity2 || FieldType == Velocity3) *index = 0;
+            if (FieldType == Velocity1 || FieldType == Velocity2 || FieldType == Velocity3 ||
+                FieldType == ColdGasVelocity1 || FieldType == ColdGasVelocity2 ||
+                FieldType == ColdGasVelocity3 || FieldType == ColdGasDensity) *index = 0;
             break;
           case BoundaryUndefined:
             break;

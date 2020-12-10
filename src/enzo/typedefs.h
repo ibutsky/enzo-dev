@@ -183,7 +183,8 @@ const field_type
   ColdGasDensity = 104,   // note, this is the total mass of cold gas divided by the cell volume
   ColdGasVelocity1 = 105,
   ColdGasVelocity2 = 106,
-  ColdGasVelocity3 = 107, 
+  ColdGasVelocity3 = 107,
+  
   FieldUndefined  = 108;
 
 /*

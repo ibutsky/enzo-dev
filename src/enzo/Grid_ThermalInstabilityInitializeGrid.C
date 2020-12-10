@@ -359,7 +359,7 @@ int grid::ThermalInstabilityInitializeGrid(float TIMeanDensity, float TIMeanTemp
 	    }
 
 	    if (ColdGasSubgridModel){
-	      BaryonField[iCD][cell_index] = 1e-10;
+	      BaryonField[iCD][cell_index] = 1;
 	      BaryonField[iCV1][cell_index] = 0;	
 	      BaryonField[iCV2][cell_index] = 0;
       	      BaryonField[iCV3][cell_index] = 0;	

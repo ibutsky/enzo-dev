@@ -437,12 +437,12 @@ int grid::Group_WriteGrid(FILE *fptr, char *base_name, int grid_id, HDF5_hid_t f
 				this->ComputeAccelerationFieldExternal();
         this->write_dataset(GridRank, OutDims, "External_Acceleration_x",
             group_id, file_type_id, (VOIDP) AccelerationField[0], TRUE, temp);
-        if (GridRank==3){
+        if (GridRank > 1)
           this->write_dataset(GridRank, OutDims, "External_Acceleration_y",
               group_id, file_type_id, (VOIDP) AccelerationField[1], TRUE, temp);
+	if (GridRank > 2)
           this->write_dataset(GridRank, OutDims, "External_Acceleration_z",
               group_id, file_type_id, (VOIDP) AccelerationField[2], TRUE, temp);
-        }
     } // end if for write external acceleration field
 
    
